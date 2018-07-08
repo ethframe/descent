@@ -3,7 +3,7 @@ from collections import namedtuple
 from descent.fixpoint import CaseFix, fix, result_by_args
 
 
-state = namedtuple("State", "wf nul")
+state = namedtuple("State", "wf nul inv")
 
 
 class GrammarCheck(CaseFix):
@@ -11,25 +11,27 @@ class GrammarCheck(CaseFix):
         return self.fix.get(val)
 
     def string(self, val):
-        return state(True, not val)
+        return state(True, not val, False)
 
     def char(self, val):
-        return state(True, False)
+        return state(True, False, False)
 
     def char_any(self, val):
-        return state(True, False)
+        return state(True, False, False)
 
     def char_range(self, val):
-        return state(True, False)
+        return state(True, False, False)
 
     def sequence(self, val):
         nul = True
+        inv = False
         for p in val:
             s = self(p)
             if nul and not s.wf:
                 return self.fix.bot
             nul &= s.nul
-        return state(True, nul)
+            inv |= s.inv
+        return state(True, nul, inv)
 
     def choice(self, val):
         nul = False
@@ -38,29 +40,29 @@ class GrammarCheck(CaseFix):
             if not s.wf:
                 return self.fix.bot
             nul |= s.nul
-        return state(True, nul)
+        return state(True, nul, False)
 
     def not_follow(self, val):
         s = self(val)
-        return state(s.wf, not (s.wf and s.nul))
+        return state(s.wf, not (s.wf and s.nul), s.inv)
 
     def follow(self, val):
         return self(val)
 
     def optional(self, val):
         s = self(val)
-        return state(s.wf, True)
+        return state(s.wf, True, s.inv)
 
     def repeat(self, val):
         s = self(val)
-        return state(s.wf and not s.nul, True)
+        return state(s.wf and not s.nul, True, s.inv or s.nul)
 
     def repeat1(self, val):
         s = self(val)
-        return state(s.wf and not s.nul, False)
+        return state(s.wf and not s.nul, False, s.inv or s.nul)
 
     def node(self, val):
-        return state(True, True)
+        return state(True, True, False)
 
     def append(self, val):
         return self(val.expr)
@@ -78,15 +80,15 @@ class GrammarCheck(CaseFix):
         return self(val)
 
     def fail(self, val):
-        return state(True, False)
+        return state(True, False, False)
 
 
-check = fix(GrammarCheck, state(False, True))
+check = fix(GrammarCheck, state(False, True, False))
 
 
 def check_grammar(gram):
     return result_by_args(check(gram, [list(gram)[0]]))
 
 
-def get_not_wf(result):
-    return [rule for rule, res in result.items() if not res.wf]
+def get_invalid(result):
+    return [rule for rule, res in result.items() if res.inv]

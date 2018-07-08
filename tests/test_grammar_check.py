@@ -4,10 +4,13 @@ from descent.parser import parser
 from descent.convert import convert_to_dict
 from descent.grammarcheck import check_grammar
 
-WF_NULL = (True, True)
-WF_NOT_NULL = (True, False)
-NOT_WF_NULL = (False, True)
-NOT_WF_NOT_NULL = (False, False)
+WF_NULL = (True, True, False)
+WF_NOT_NULL = (True, False, False)
+WF_NOT_NULL_INV = (True, False, True)
+NOT_WF_NULL = (False, True, False)
+NOT_WF_NULL_INV = (False, True, True)
+NOT_WF_NOT_NULL = (False, False, False)
+NOT_WF_NOT_NULL_INV = (False, False, True)
 
 check_cases = [
     ("A <- 'a'", {"A": WF_NOT_NULL}),
@@ -39,8 +42,10 @@ check_cases = [
     ("A <- A 'a' / 'a'", {"A": NOT_WF_NULL}),
     ("A <- !A", {"A": NOT_WF_NULL}),
     ("A <- A?", {"A": NOT_WF_NULL}),
-    ("A <- A*", {"A": NOT_WF_NULL}),
-    ("A <- A+", {"A": NOT_WF_NOT_NULL}),
+    ("A <- A*", {"A": NOT_WF_NULL_INV}),
+    ("A <- A+", {"A": NOT_WF_NOT_NULL_INV}),
+
+    ("A <- ' ' ('')*", {"A": WF_NOT_NULL_INV}),
 ]
 
 
