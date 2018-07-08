@@ -46,4 +46,4 @@ check_cases = [
 
 @py.test.mark.parametrize("input, result", check_cases)
 def test_parse(input, result):
-    assert check_grammar(convert_to_dict(parser.parse(input)), "A") == result
+    assert check_grammar(convert_to_dict(parser.parse(input))) == result

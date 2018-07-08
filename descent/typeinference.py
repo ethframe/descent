@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from descent.asttypes import (
     InvalidType, UnknownType, EmptyType, StringType,
     NamedType, TokenType, NodeType, merge_types
@@ -77,7 +79,7 @@ class TypeInference(CaseFix):
 
 class Registry:
     def __init__(self):
-        self.types = {}
+        self.types = OrderedDict()
 
     def add(self, tp):
         if isinstance(tp, (NamedType, TokenType, NodeType)):

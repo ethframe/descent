@@ -84,5 +84,9 @@ class GrammarCheck(CaseFix):
 check = fix(GrammarCheck, state(False, True))
 
 
-def check_grammar(gram, start):
-    return result_by_args(check(gram, [start]))
+def check_grammar(gram):
+    return result_by_args(check(gram, [list(gram)[0]]))
+
+
+def get_not_wf(result):
+    return [rule for rule, res in result.items() if not res.wf]
