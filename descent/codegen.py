@@ -37,6 +37,7 @@ def gen_namedtype(tp):
             "return self.__class__ is other.__class__"
         ]),
         _defm("get_value", [], ["return self"]),
+        _defm("get_values", [], ["return (self,)"]),
         _defm("splice_to", ["other"], ["return other"]),
         _defm("copy", [], ["return self"]),
         ""
@@ -57,6 +58,7 @@ def gen_tokentype(tp):
             + " and self.val == other.val"
         ]),
         _defm("get_value", [], ["return self.val"]),
+        _defm("get_values", [], ["return (self.val,)"]),
         _defm("consume", ["val"], ["self.val += val", "return self"]),
         _defm("splice_to", ["other", "hooks"], [
             "hook = hooks.get('{}')".format(tp.name),
@@ -115,6 +117,13 @@ def gen_nodetype(tp):
             ["return self.{}".format(field_names[0])
              if len(field_names) == 1 else
              "return self"],
+            "",
+            "def get_values(self):",
+            ["return (self.{},)".format(field_names[0])
+             if len(field_names) == 1 else
+             "return ({})".format(
+                _fmt_and_join("self.{}", field_names, ", ")
+            )],
             "",
             "def copy(self):",
             ["return {}(".format(tp.name),

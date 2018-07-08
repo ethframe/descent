@@ -1,36 +1,3 @@
-class char:
-    def __init__(self, val=''):
-        self.val = val
-
-    def __str__(self):
-        return self.val
-
-    def __repr__(self):
-        return 'char({!r})'.format(self.val)
-
-    def __hash__(self):
-        return hash((self.__class__, self.val))
-
-    def __eq__(self, other):
-        return self.__class__ is other.__class__ and self.val == other.val
-
-    def get_value(self):
-        return self.val
-
-    def consume(self, val):
-        self.val += val
-        return self
-
-    def splice_to(self, other, hooks):
-        hook = hooks.get('char')
-        if hook:
-            return other.consume(hook(self.val))
-        return other.consume(self.val)
-
-    def copy(self):
-        return char(self.val)
-
-
 class escape:
     def __init__(self, val=''):
         self.val = val
@@ -49,6 +16,9 @@ class escape:
 
     def get_value(self):
         return self.val
+
+    def get_values(self):
+        return (self.val,)
 
     def consume(self, val):
         self.val += val
@@ -83,6 +53,9 @@ class octal:
     def get_value(self):
         return self.val
 
+    def get_values(self):
+        return (self.val,)
+
     def consume(self, val):
         self.val += val
         return self
@@ -97,6 +70,42 @@ class octal:
         return octal(self.val)
 
 
+class char:
+    def __init__(self, val=''):
+        self.val = val
+
+    def __str__(self):
+        return self.val
+
+    def __repr__(self):
+        return 'char({!r})'.format(self.val)
+
+    def __hash__(self):
+        return hash((self.__class__, self.val))
+
+    def __eq__(self, other):
+        return self.__class__ is other.__class__ and self.val == other.val
+
+    def get_value(self):
+        return self.val
+
+    def get_values(self):
+        return (self.val,)
+
+    def consume(self, val):
+        self.val += val
+        return self
+
+    def splice_to(self, other, hooks):
+        hook = hooks.get('char')
+        if hook:
+            return other.consume(hook(self.val))
+        return other.consume(self.val)
+
+    def copy(self):
+        return char(self.val)
+
+
 class char_any:
     def __repr__(self):
         return 'char_any()'
@@ -109,6 +118,9 @@ class char_any:
 
     def get_value(self):
         return self
+
+    def get_values(self):
+        return (self,)
 
     def splice_to(self, other):
         return other
@@ -135,6 +147,9 @@ class reference:
 
     def get_value(self):
         return self.val
+
+    def get_values(self):
+        return (self.val,)
 
     def consume(self, val):
         self.val += val
@@ -170,42 +185,11 @@ class splice:
     def get_value(self):
         return self.expr
 
+    def get_values(self):
+        return (self.expr,)
+
     def copy(self):
         return splice(
-            self.expr,
-        )
-
-    def append_expr(self, val):
-        self.expr = val
-        return self
-
-    def splice_to(self, other, hooks):
-        other.append_expr(self.expr)
-        return other
-
-
-class ignore:
-    __slots__ = ('expr',)
-
-    def __init__(self, expr=None):
-        self.expr = expr
-
-    def __repr__(self):
-        return 'ignore({!r})'.format(
-            self.expr,
-        )
-
-    def __eq__(self, other):
-        return (
-            self.__class__ is other.__class__
-            and self.expr == other.expr
-        )
-
-    def get_value(self):
-        return self.expr
-
-    def copy(self):
-        return ignore(
             self.expr,
         )
 
@@ -238,6 +222,9 @@ class top_splice:
     def get_value(self):
         return self.expr
 
+    def get_values(self):
+        return (self.expr,)
+
     def copy(self):
         return top_splice(
             self.expr,
@@ -252,24 +239,41 @@ class top_splice:
         return other
 
 
-class fail:
-    def __repr__(self):
-        return 'fail()'
+class ignore:
+    __slots__ = ('expr',)
 
-    def __hash__(self):
-        return hash(self.__class__)
+    def __init__(self, expr=None):
+        self.expr = expr
+
+    def __repr__(self):
+        return 'ignore({!r})'.format(
+            self.expr,
+        )
 
     def __eq__(self, other):
-        return self.__class__ is other.__class__
+        return (
+            self.__class__ is other.__class__
+            and self.expr == other.expr
+        )
 
     def get_value(self):
-        return self
+        return self.expr
 
-    def splice_to(self, other):
-        return other
+    def get_values(self):
+        return (self.expr,)
 
     def copy(self):
+        return ignore(
+            self.expr,
+        )
+
+    def append_expr(self, val):
+        self.expr = val
         return self
+
+    def splice_to(self, other, hooks):
+        other.append_expr(self.expr)
+        return other
 
 
 class string:
@@ -291,6 +295,9 @@ class string:
     def get_value(self):
         return self.val
 
+    def get_values(self):
+        return (self.val,)
+
     def consume(self, val):
         self.val += val
         return self
@@ -303,6 +310,29 @@ class string:
 
     def copy(self):
         return string(self.val)
+
+
+class fail:
+    def __repr__(self):
+        return 'fail()'
+
+    def __hash__(self):
+        return hash(self.__class__)
+
+    def __eq__(self, other):
+        return self.__class__ is other.__class__
+
+    def get_value(self):
+        return self
+
+    def get_values(self):
+        return (self,)
+
+    def splice_to(self, other):
+        return other
+
+    def copy(self):
+        return self
 
 
 class char_range:
@@ -328,6 +358,9 @@ class char_range:
     def get_value(self):
         return self
 
+    def get_values(self):
+        return (self.start, self.end)
+
     def copy(self):
         return char_range(
             self.start,
@@ -345,40 +378,6 @@ class char_range:
     def splice_to(self, other, hooks):
         other.append_start(self.start)
         other.append_end(self.end)
-        return other
-
-
-class repeat1:
-    __slots__ = ('expr',)
-
-    def __init__(self, expr=None):
-        self.expr = expr
-
-    def __repr__(self):
-        return 'repeat1({!r})'.format(
-            self.expr,
-        )
-
-    def __eq__(self, other):
-        return (
-            self.__class__ is other.__class__
-            and self.expr == other.expr
-        )
-
-    def get_value(self):
-        return self.expr
-
-    def copy(self):
-        return repeat1(
-            self.expr,
-        )
-
-    def append_expr(self, val):
-        self.expr = val
-        return self
-
-    def splice_to(self, other, hooks):
-        other.append_expr(self.expr)
         return other
 
 
@@ -401,6 +400,9 @@ class optional:
 
     def get_value(self):
         return self.expr
+
+    def get_values(self):
+        return (self.expr,)
 
     def copy(self):
         return optional(
@@ -436,6 +438,9 @@ class repeat:
     def get_value(self):
         return self.expr
 
+    def get_values(self):
+        return (self.expr,)
+
     def copy(self):
         return repeat(
             self.expr,
@@ -450,46 +455,40 @@ class repeat:
         return other
 
 
-class top:
-    __slots__ = ('expr', 'name')
+class repeat1:
+    __slots__ = ('expr',)
 
-    def __init__(self, expr=None, name=None):
+    def __init__(self, expr=None):
         self.expr = expr
-        self.name = name
 
     def __repr__(self):
-        return 'top({!r}, {!r})'.format(
+        return 'repeat1({!r})'.format(
             self.expr,
-            self.name,
         )
 
     def __eq__(self, other):
         return (
             self.__class__ is other.__class__
             and self.expr == other.expr
-            and self.name == other.name
         )
 
     def get_value(self):
-        return self
+        return self.expr
+
+    def get_values(self):
+        return (self.expr,)
 
     def copy(self):
-        return top(
+        return repeat1(
             self.expr,
-            self.name,
         )
 
     def append_expr(self, val):
         self.expr = val
         return self
 
-    def append_name(self, val):
-        self.name = val
-        return self
-
     def splice_to(self, other, hooks):
         other.append_expr(self.expr)
-        other.append_name(self.name)
         return other
 
 
@@ -516,8 +515,57 @@ class append:
     def get_value(self):
         return self
 
+    def get_values(self):
+        return (self.expr, self.name)
+
     def copy(self):
         return append(
+            self.expr,
+            self.name,
+        )
+
+    def append_expr(self, val):
+        self.expr = val
+        return self
+
+    def append_name(self, val):
+        self.name = val
+        return self
+
+    def splice_to(self, other, hooks):
+        other.append_expr(self.expr)
+        other.append_name(self.name)
+        return other
+
+
+class top:
+    __slots__ = ('expr', 'name')
+
+    def __init__(self, expr=None, name=None):
+        self.expr = expr
+        self.name = name
+
+    def __repr__(self):
+        return 'top({!r}, {!r})'.format(
+            self.expr,
+            self.name,
+        )
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__
+            and self.expr == other.expr
+            and self.name == other.name
+        )
+
+    def get_value(self):
+        return self
+
+    def get_values(self):
+        return (self.expr, self.name)
+
+    def copy(self):
+        return top(
             self.expr,
             self.name,
         )
@@ -555,6 +603,9 @@ class node:
     def get_value(self):
         return self.val
 
+    def get_values(self):
+        return (self.val,)
+
     def consume(self, val):
         self.val += val
         return self
@@ -588,6 +639,9 @@ class follow:
 
     def get_value(self):
         return self.expr
+
+    def get_values(self):
+        return (self.expr,)
 
     def copy(self):
         return follow(
@@ -623,6 +677,9 @@ class not_follow:
     def get_value(self):
         return self.expr
 
+    def get_values(self):
+        return (self.expr,)
+
     def copy(self):
         return not_follow(
             self.expr,
@@ -656,6 +713,9 @@ class sequence:
 
     def get_value(self):
         return self.items
+
+    def get_values(self):
+        return (self.items,)
 
     def copy(self):
         return sequence(
@@ -694,6 +754,9 @@ class choice:
 
     def get_value(self):
         return self.items
+
+    def get_values(self):
+        return (self.items,)
 
     def copy(self):
         return choice(
@@ -736,6 +799,9 @@ class rule:
     def get_value(self):
         return self
 
+    def get_values(self):
+        return (self.name, self.expr)
+
     def copy(self):
         return rule(
             self.name,
@@ -775,6 +841,9 @@ class grammar:
 
     def get_value(self):
         return self.rules
+
+    def get_values(self):
+        return (self.rules,)
 
     def copy(self):
         return grammar(

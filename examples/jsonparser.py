@@ -2,7 +2,7 @@ from descent.case import CaseVal
 from descent.helpers import parser_from_source
 
 JSON_GRAMMAR = r"""
-    json <- _ value
+    json <- _ value !.
     value <- string / number / object / array / true / false / null
     object <- "{"~ _ @Dict (pair:items (","~ _ pair:items)*)? "}"~ _
     pair <- @Pair string:key ":"~ _ value:value

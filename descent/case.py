@@ -12,3 +12,9 @@ class CaseVal(Case):
     def __call__(self, val, *args):
         method = getattr(self, type(val).__name__.lower())
         return method(val.get_value(), *args)
+
+
+class CaseVals(Case):
+    def __call__(self, val, *args):
+        method = getattr(self, type(val).__name__.lower())
+        return method(*val.get_values(), *args)
