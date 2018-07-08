@@ -19,39 +19,47 @@ type_cases = [
     ("A <- (@a / @b)::", {NamedType("a"), NamedType("b")}),
     ("A <- @a @b:a", {
         NamedType("b"),
-        NodeType("a", {"a": Field(False, False)})
+        NodeType("a", {"a": Field(False, False)}, ["a"])
     }),
     ("A <- @a (@b:a / @b:b)", {
         NamedType("b"),
-        NodeType("a", {"a": Field(False, True), "b": Field(False, True)})
+        NodeType(
+            "a",
+            {"a": Field(False, True), "b": Field(False, True)},
+            ["a", "b"]
+        )
     }),
     ("A <- @b @a^a", {
         NamedType("b"),
-        NodeType("a", {"a": Field(False, False)})
+        NodeType("a", {"a": Field(False, False)}, ["a"])
     }),
     ("A <- @a @b:a?", {
         NamedType("b"),
-        NodeType("a", {"a": Field(False, True)})
+        NodeType("a", {"a": Field(False, True)}, ["a"])
     }),
     ("A <- @a @b:a*", {
         NamedType("b"),
-        NodeType("a", {"a": Field(True, True)})
+        NodeType("a", {"a": Field(True, True)}, ["a"])
     }),
     ("A <- @a (@b:a / @b:b*)", {
         NamedType("b"),
-        NodeType("a", {"a": Field(False, True), "b": Field(True, True)})
+        NodeType(
+            "a",
+            {"a": Field(False, True), "b": Field(True, True)},
+            ["a", "b"]
+        )
     }),
     ("A <- @a @b:a+", {
         NamedType("b"),
-        NodeType("a", {"a": Field(True, False)})
+        NodeType("a", {"a": Field(True, False)}, ["a"])
     }),
     ("A <- @a A:a / @b", {
         NamedType("b"),
-        NodeType("a", {"a": Field(False, False)})
+        NodeType("a", {"a": Field(False, False)}, ["a"])
     }),
     ("A <- @a @b:a A:: / @a @b:a", {
         NamedType("b"),
-        NodeType("a", {"a": Field(True, False)})
+        NodeType("a", {"a": Field(True, False)}, ["a"])
     }),
 
     ("A <- @a~", {NamedType("a")}),
@@ -63,6 +71,24 @@ type_cases = [
     ("A <- @a (@b 'a'):a (@b 'a')::", set()),
     ("A <- (@a 'a') (@b 'a'):a", set()),
     ("A <- (@a 'a') (@b (@c 'a'):a)::", set()),
+
+    ("A <- @a @b:b? @b:a", {
+        NamedType("b"),
+        NodeType(
+            "a",
+            {"a": Field(False, False), "b": Field(False, True)},
+            ["b", "a"]
+        )
+    }),
+
+    ("A <- @a @b:a @b:b / @a @b:b @b:a", {
+        NamedType("b"),
+        NodeType(
+            "a",
+            {"a": Field(False, False), "b": Field(False, False)},
+            ["a", "b"]
+        )
+    }),
 ]
 
 

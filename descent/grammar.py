@@ -250,8 +250,8 @@ grammar = OrderedDict(
             "IdentStart",
             choice(
                 [
-                    char_range(char("z"), char("a")),
-                    char_range(char("Z"), char("A")),
+                    char_range(char("a"), char("z")),
+                    char_range(char("A"), char("Z")),
                     char("_"),
                 ]
             ),
@@ -259,7 +259,7 @@ grammar = OrderedDict(
         (
             "IdentCont",
             choice(
-                [reference("IdentStart"), char_range(char("9"), char("0"))]
+                [reference("IdentStart"), char_range(char("0"), char("9"))]
             ),
         ),
         (
@@ -406,17 +406,17 @@ grammar = OrderedDict(
                         [
                             node("octal"),
                             ignore(string("\\")),
-                            char_range(char("2"), char("0")),
-                            char_range(char("7"), char("0")),
-                            char_range(char("7"), char("0")),
+                            char_range(char("0"), char("2")),
+                            char_range(char("0"), char("7")),
+                            char_range(char("0"), char("7")),
                         ]
                     ),
                     sequence(
                         [
                             node("octal"),
                             ignore(string("\\")),
-                            char_range(char("7"), char("0")),
-                            optional(char_range(char("7"), char("0"))),
+                            char_range(char("0"), char("7")),
+                            optional(char_range(char("0"), char("7"))),
                         ]
                     ),
                     sequence(

@@ -70,7 +70,7 @@ def gen_tokentype(tp):
 
 
 def gen_nodetype(tp):
-    field_names = sorted(tp.fields)
+    field_names = tp.order
     lines = ["class {}:".format(tp.name)]
     if len(tp.fields) == 1:
         lines.extend([

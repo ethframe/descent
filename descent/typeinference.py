@@ -1,6 +1,6 @@
 from descent.asttypes import (
     InvalidType, UnknownType, EmptyType, StringType,
-    NamedType, TokenType, NodeType, or_type
+    NamedType, TokenType, NodeType, merge_types
 )
 from descent.fixpoint import CaseFix, fix
 
@@ -15,7 +15,7 @@ class TypeInference(CaseFix):
         return ctype
 
     def choice(self, val, ctype):
-        return or_type(*(self(p, ctype) for p in val))
+        return merge_types(self(p, ctype) for p in val)
 
     def node(self, val, ctype):
         if isinstance(ctype, InvalidType):
@@ -58,21 +58,21 @@ class TypeInference(CaseFix):
     string = char_any = char_range = char
 
     def repeat(self, val, ctype):
-        ntype = or_type(ctype, self(val, ctype))
+        ntype = merge_types((ctype, self(val, ctype)))
         while ntype != ctype:
             ctype = ntype
-            ntype = or_type(ctype, self(val, ctype))
+            ntype = merge_types((ctype, self(val, ctype)))
         return ntype
 
     def repeat1(self, val, ctype):
         ntype = self(val, ctype)
         while ntype != ctype:
             ctype = ntype
-            ntype = or_type(ctype, self(val, ctype))
+            ntype = merge_types((ctype, self(val, ctype)))
         return ntype
 
     def optional(self, val, ctype):
-        return or_type(ctype, self(val, ctype))
+        return merge_types((ctype, self(val, ctype)))
 
 
 class Registry:
