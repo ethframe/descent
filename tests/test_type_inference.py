@@ -56,6 +56,13 @@ type_cases = [
 
     ("A <- @a~", {NamedType("a")}),
     ("A <- !@a", {NamedType("a")}),
+    ("A <- &@a", {NamedType("a")}),
+
+    ("A <- @a 'a':a", set()),
+    ("A <- @a ('a'~):a", set()),
+    ("A <- @a (@b 'a'):a (@b 'a')::", set()),
+    ("A <- (@a 'a') (@b 'a'):a", set()),
+    ("A <- (@a 'a') (@b (@c 'a'):a)::", set()),
 ]
 
 

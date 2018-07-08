@@ -1,5 +1,6 @@
 from descent.asttypes import (
-    EmptyType, NamedType, TokenType, NodeType, StringType, UnknownType, or_type
+    InvalidType, UnknownType, EmptyType, StringType,
+    NamedType, TokenType, NodeType, or_type
 )
 from descent.fixpoint import CaseFix, fix
 
@@ -17,7 +18,9 @@ class TypeInference(CaseFix):
         return or_type(*(self(p, ctype) for p in val))
 
     def node(self, val, ctype):
-        self.reg.add(ctype)
+        if isinstance(ctype, InvalidType):
+            return ctype
+        self.reg.update(ctype)
         return NamedType(val)
 
     def top(self, val, ctype):
@@ -42,25 +45,17 @@ class TypeInference(CaseFix):
 
     def ignore(self, val, ctype):
         a = self(val, EmptyType())
+        if isinstance(a, InvalidType):
+            return a
         self.reg.update(a)
         return ctype
 
-    def not_follow(self, val, ctype):
-        a = self(val, EmptyType())
-        self.reg.update(a)
-        return ctype
-
-    def char_any(self, val, ctype):
-        return ctype.splice(StringType())
+    not_follow = follow = ignore
 
     def char(self, val, ctype):
         return ctype.splice(StringType())
 
-    def string(self, val, ctype):
-        return ctype.splice(StringType())
-
-    def char_range(self, val, ctype):
-        return ctype.splice(StringType())
+    string = char_any = char_range = char
 
     def repeat(self, val, ctype):
         ntype = or_type(ctype, self(val, ctype))
@@ -103,5 +98,8 @@ def infer_types(gram):
     start = list(gram)[0]
     reg = Registry()
     inf = infer(gram, [start], EmptyType(), reg=reg)
-    reg.update(inf[start].get((EmptyType(),), ()))
+    top = inf[start].get((EmptyType(),), ())
+    if isinstance(top, InvalidType):
+        return []
+    reg.update(top)
     return list(reg.types.values())
