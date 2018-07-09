@@ -34,3 +34,8 @@ Recursive descent parsing toolkit.
 * `A::` - extends current node with fields or string from result of `A`
 * `A^^` - extends result of `A` with fields or string from current node
 * `A~` - discards result of `A`
+
+### Macros
+
+* `macro<arg1, arg2> <- arg1 ...` - macro definition
+* `macro<A, "b" / "c">` - macro usage
