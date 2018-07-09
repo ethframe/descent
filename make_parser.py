@@ -5,19 +5,22 @@ from descent.convert import convert_to_dict
 from descent.grammarcheck import check_grammar, get_invalid
 from descent.typeinference import infer_types
 from descent.codegen import gen_ast_module_src
+from descent.macro import expand_macros
 
 
 def generate(input):
     parsed = parser.parse(input)
     if parsed is None:
         raise ValueError("Invald grammar")
-    grammar = convert_to_dict(parsed)
+    expanded = expand_macros(parsed)
+    grammar = convert_to_dict(expanded)
     invalid = get_invalid(check_grammar(grammar))
     if invalid:
         raise ValueError("Invalid rules: {}".format(", ".join(invalid)))
     types = infer_types(grammar)
 
     yield "from collections import OrderedDict\n"
+    yield "from descent.ast import *"
     yield "from descent.combinators import compile_parser\n\n"
     yield gen_ast_module_src(types)
     yield ""

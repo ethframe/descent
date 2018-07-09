@@ -17,6 +17,7 @@ from .ast import (
     splice,
     string,
     top,
+    top_splice,
 )
 
 grammar = OrderedDict(
@@ -40,6 +41,48 @@ grammar = OrderedDict(
                 [
                     node("rule"),
                     append(reference("Identifier"), reference("name")),
+                    optional(
+                        sequence(
+                            [
+                                top_splice(node("macro")),
+                                sequence(
+                                    [
+                                        reference("MOPEN"),
+                                        optional(
+                                            sequence(
+                                                [
+                                                    append(
+                                                        reference(
+                                                            "Identifier"
+                                                        ),
+                                                        reference("args"),
+                                                    ),
+                                                    repeat(
+                                                        sequence(
+                                                            [
+                                                                reference(
+                                                                    "COMMA"
+                                                                ),
+                                                                append(
+                                                                    reference(
+                                                                        "Identifier"
+                                                                    ),
+                                                                    reference(
+                                                                        "args"
+                                                                    ),
+                                                                ),
+                                                            ]
+                                                        )
+                                                    ),
+                                                ]
+                                            )
+                                        ),
+                                        reference("MCLOSE"),
+                                    ]
+                                ),
+                            ]
+                        )
+                    ),
                     reference("LEFTARROW"),
                     append(reference("Expression"), reference("expr")),
                 ]
@@ -123,18 +166,9 @@ grammar = OrderedDict(
                         top(
                             choice(
                                 [
-                                    sequence(
-                                        [
-                                            reference("QUESTION"),
-                                            node("optional"),
-                                        ]
-                                    ),
-                                    sequence(
-                                        [reference("STAR"), node("repeat")]
-                                    ),
-                                    sequence(
-                                        [reference("PLUS"), node("repeat1")]
-                                    ),
+                                    reference("QUESTION"),
+                                    reference("STAR"),
+                                    reference("PLUS"),
                                 ]
                             ),
                             reference("expr"),
@@ -156,20 +190,8 @@ grammar = OrderedDict(
                                         top(
                                             choice(
                                                 [
-                                                    sequence(
-                                                        [
-                                                            reference(
-                                                                "APPEND"
-                                                            ),
-                                                            node("append"),
-                                                        ]
-                                                    ),
-                                                    sequence(
-                                                        [
-                                                            reference("TOP"),
-                                                            node("top"),
-                                                        ]
-                                                    ),
+                                                    reference("APPEND"),
+                                                    reference("TOP"),
                                                 ]
                                             ),
                                             reference("expr"),
@@ -183,24 +205,9 @@ grammar = OrderedDict(
                                 top(
                                     choice(
                                         [
-                                            sequence(
-                                                [
-                                                    reference("SPLICE"),
-                                                    node("splice"),
-                                                ]
-                                            ),
-                                            sequence(
-                                                [
-                                                    reference("TOPSPLICE"),
-                                                    node("top_splice"),
-                                                ]
-                                            ),
-                                            sequence(
-                                                [
-                                                    reference("IGNORE"),
-                                                    node("ignore"),
-                                                ]
-                                            ),
+                                            reference("SPLICE"),
+                                            reference("TOPSPLICE"),
+                                            reference("IGNORE"),
                                         ]
                                     ),
                                     reference("expr"),
@@ -218,6 +225,50 @@ grammar = OrderedDict(
                     sequence(
                         [
                             reference("Identifier"),
+                            optional(
+                                sequence(
+                                    [
+                                        top(node("expand"), reference("name")),
+                                        sequence(
+                                            [
+                                                reference("MOPEN"),
+                                                optional(
+                                                    sequence(
+                                                        [
+                                                            append(
+                                                                reference(
+                                                                    "Expression"
+                                                                ),
+                                                                reference(
+                                                                    "args"
+                                                                ),
+                                                            ),
+                                                            repeat(
+                                                                sequence(
+                                                                    [
+                                                                        reference(
+                                                                            "COMMA"
+                                                                        ),
+                                                                        append(
+                                                                            reference(
+                                                                                "Expression"
+                                                                            ),
+                                                                            reference(
+                                                                                "args"
+                                                                            ),
+                                                                        ),
+                                                                    ]
+                                                                )
+                                                            ),
+                                                        ]
+                                                    )
+                                                ),
+                                                reference("MCLOSE"),
+                                            ]
+                                        ),
+                                    ]
+                                )
+                            ),
                             not_follow(reference("LEFTARROW")),
                         ]
                     ),
@@ -323,33 +374,39 @@ grammar = OrderedDict(
                             sequence(
                                 [
                                     not_follow(string("]")),
-                                    reference("Range"),
-                                    optional(
-                                        sequence(
-                                            [
-                                                top(
-                                                    node("choice"),
-                                                    reference("items"),
-                                                ),
-                                                repeat1(
-                                                    sequence(
-                                                        [
-                                                            not_follow(
-                                                                string("]")
-                                                            ),
-                                                            append(
-                                                                reference(
-                                                                    "Range"
-                                                                ),
-                                                                reference(
-                                                                    "items"
-                                                                ),
-                                                            ),
-                                                        ]
-                                                    )
-                                                ),
-                                            ]
-                                        )
+                                    sequence(
+                                        [
+                                            reference("Range"),
+                                            optional(
+                                                sequence(
+                                                    [
+                                                        top(
+                                                            node("choice"),
+                                                            reference("items"),
+                                                        ),
+                                                        repeat1(
+                                                            sequence(
+                                                                [
+                                                                    not_follow(
+                                                                        string(
+                                                                            "]"
+                                                                        )
+                                                                    ),
+                                                                    append(
+                                                                        reference(
+                                                                            "Range"
+                                                                        ),
+                                                                        reference(
+                                                                            "items"
+                                                                        ),
+                                                                    ),
+                                                                ]
+                                                            )
+                                                        ),
+                                                    ]
+                                                )
+                                            ),
+                                        ]
                                     ),
                                 ]
                             ),
@@ -425,22 +482,72 @@ grammar = OrderedDict(
                 ]
             ),
         ),
-        ("Any", sequence([reference("DOT"), node("char_any")])),
+        ("Any", reference("DOT")),
         ("LEFTARROW", sequence([ignore(string("<-")), reference("Spacing")])),
         ("SLASH", sequence([ignore(string("/")), reference("Spacing")])),
         ("AND", sequence([ignore(string("&")), reference("Spacing")])),
         ("NOT", sequence([ignore(string("!")), reference("Spacing")])),
-        ("QUESTION", sequence([ignore(string("?")), reference("Spacing")])),
-        ("STAR", sequence([ignore(string("*")), reference("Spacing")])),
-        ("PLUS", sequence([ignore(string("+")), reference("Spacing")])),
-        ("APPEND", sequence([ignore(string(":")), reference("Spacing")])),
-        ("TOP", sequence([ignore(string("^")), reference("Spacing")])),
-        ("SPLICE", sequence([ignore(string("::")), reference("Spacing")])),
-        ("TOPSPLICE", sequence([ignore(string("^^")), reference("Spacing")])),
-        ("IGNORE", sequence([ignore(string("~")), reference("Spacing")])),
+        (
+            "QUESTION",
+            sequence(
+                [ignore(string("?")), reference("Spacing"), node("optional")]
+            ),
+        ),
+        (
+            "STAR",
+            sequence(
+                [ignore(string("*")), reference("Spacing"), node("repeat")]
+            ),
+        ),
+        (
+            "PLUS",
+            sequence(
+                [ignore(string("+")), reference("Spacing"), node("repeat1")]
+            ),
+        ),
+        (
+            "DOT",
+            sequence(
+                [ignore(string(".")), reference("Spacing"), node("char_any")]
+            ),
+        ),
+        (
+            "APPEND",
+            sequence(
+                [ignore(string(":")), reference("Spacing"), node("append")]
+            ),
+        ),
+        (
+            "TOP",
+            sequence([ignore(string("^")), reference("Spacing"), node("top")]),
+        ),
+        (
+            "SPLICE",
+            sequence(
+                [ignore(string("::")), reference("Spacing"), node("splice")]
+            ),
+        ),
+        (
+            "TOPSPLICE",
+            sequence(
+                [
+                    ignore(string("^^")),
+                    reference("Spacing"),
+                    node("top_splice"),
+                ]
+            ),
+        ),
+        (
+            "IGNORE",
+            sequence(
+                [ignore(string("~")), reference("Spacing"), node("ignore")]
+            ),
+        ),
         ("OPEN", sequence([ignore(string("(")), reference("Spacing")])),
         ("CLOSE", sequence([ignore(string(")")), reference("Spacing")])),
-        ("DOT", sequence([ignore(string(".")), reference("Spacing")])),
+        ("MOPEN", sequence([ignore(string("<")), reference("Spacing")])),
+        ("MCLOSE", sequence([ignore(string(">")), reference("Spacing")])),
+        ("COMMA", sequence([ignore(string(",")), reference("Spacing")])),
         (
             "Spacing",
             repeat(choice([reference("Space"), reference("Comment")])),

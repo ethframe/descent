@@ -106,29 +106,6 @@ class char:
         return char(self.val)
 
 
-class char_any:
-    def __repr__(self):
-        return 'char_any()'
-
-    def __hash__(self):
-        return hash(self.__class__)
-
-    def __eq__(self, other):
-        return self.__class__ is other.__class__
-
-    def get_value(self):
-        return self
-
-    def get_values(self):
-        return (self,)
-
-    def splice_to(self, other):
-        return other
-
-    def copy(self):
-        return self
-
-
 class reference:
     def __init__(self, val=''):
         self.val = val
@@ -163,6 +140,273 @@ class reference:
 
     def copy(self):
         return reference(self.val)
+
+
+class rule:
+    __slots__ = ('name', 'expr')
+
+    def __init__(self, name=None, expr=None):
+        self.name = name
+        self.expr = expr
+
+    def __repr__(self):
+        return 'rule({!r}, {!r})'.format(
+            self.name,
+            self.expr,
+        )
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__
+            and self.name == other.name
+            and self.expr == other.expr
+        )
+
+    def get_value(self):
+        return self
+
+    def get_values(self):
+        return (self.name, self.expr)
+
+    def copy(self):
+        return rule(
+            self.name,
+            self.expr,
+        )
+
+    def append_name(self, val):
+        self.name = val
+        return self
+
+    def append_expr(self, val):
+        self.expr = val
+        return self
+
+    def splice_to(self, other, hooks):
+        other.append_name(self.name)
+        if self.expr is not None:
+            other.append_expr(self.expr)
+        return other
+
+
+class string:
+    def __init__(self, val=''):
+        self.val = val
+
+    def __str__(self):
+        return self.val
+
+    def __repr__(self):
+        return 'string({!r})'.format(self.val)
+
+    def __hash__(self):
+        return hash((self.__class__, self.val))
+
+    def __eq__(self, other):
+        return self.__class__ is other.__class__ and self.val == other.val
+
+    def get_value(self):
+        return self.val
+
+    def get_values(self):
+        return (self.val,)
+
+    def consume(self, val):
+        self.val += val
+        return self
+
+    def splice_to(self, other, hooks):
+        hook = hooks.get('string')
+        if hook:
+            return other.consume(hook(self.val))
+        return other.consume(self.val)
+
+    def copy(self):
+        return string(self.val)
+
+
+class fail:
+    def __repr__(self):
+        return 'fail()'
+
+    def __hash__(self):
+        return hash(self.__class__)
+
+    def __eq__(self, other):
+        return self.__class__ is other.__class__
+
+    def get_value(self):
+        return self
+
+    def get_values(self):
+        return (self,)
+
+    def splice_to(self, other):
+        return other
+
+    def copy(self):
+        return self
+
+
+class char_any:
+    def __repr__(self):
+        return 'char_any()'
+
+    def __hash__(self):
+        return hash(self.__class__)
+
+    def __eq__(self, other):
+        return self.__class__ is other.__class__
+
+    def get_value(self):
+        return self
+
+    def get_values(self):
+        return (self,)
+
+    def splice_to(self, other):
+        return other
+
+    def copy(self):
+        return self
+
+
+class char_range:
+    __slots__ = ('start', 'end')
+
+    def __init__(self, start=None, end=None):
+        self.start = start
+        self.end = end
+
+    def __repr__(self):
+        return 'char_range({!r}, {!r})'.format(
+            self.start,
+            self.end,
+        )
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__
+            and self.start == other.start
+            and self.end == other.end
+        )
+
+    def get_value(self):
+        return self
+
+    def get_values(self):
+        return (self.start, self.end)
+
+    def copy(self):
+        return char_range(
+            self.start,
+            self.end,
+        )
+
+    def append_start(self, val):
+        self.start = val
+        return self
+
+    def append_end(self, val):
+        self.end = val
+        return self
+
+    def splice_to(self, other, hooks):
+        other.append_start(self.start)
+        other.append_end(self.end)
+        return other
+
+
+class append:
+    __slots__ = ('expr', 'name')
+
+    def __init__(self, expr=None, name=None):
+        self.expr = expr
+        self.name = name
+
+    def __repr__(self):
+        return 'append({!r}, {!r})'.format(
+            self.expr,
+            self.name,
+        )
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__
+            and self.expr == other.expr
+            and self.name == other.name
+        )
+
+    def get_value(self):
+        return self
+
+    def get_values(self):
+        return (self.expr, self.name)
+
+    def copy(self):
+        return append(
+            self.expr,
+            self.name,
+        )
+
+    def append_expr(self, val):
+        self.expr = val
+        return self
+
+    def append_name(self, val):
+        self.name = val
+        return self
+
+    def splice_to(self, other, hooks):
+        other.append_expr(self.expr)
+        other.append_name(self.name)
+        return other
+
+
+class top:
+    __slots__ = ('expr', 'name')
+
+    def __init__(self, expr=None, name=None):
+        self.expr = expr
+        self.name = name
+
+    def __repr__(self):
+        return 'top({!r}, {!r})'.format(
+            self.expr,
+            self.name,
+        )
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__
+            and self.expr == other.expr
+            and self.name == other.name
+        )
+
+    def get_value(self):
+        return self
+
+    def get_values(self):
+        return (self.expr, self.name)
+
+    def copy(self):
+        return top(
+            self.expr,
+            self.name,
+        )
+
+    def append_expr(self, val):
+        self.expr = val
+        return self
+
+    def append_name(self, val):
+        self.name = val
+        return self
+
+    def splice_to(self, other, hooks):
+        other.append_expr(self.expr)
+        other.append_name(self.name)
+        return other
 
 
 class splice:
@@ -276,7 +520,7 @@ class ignore:
         return other
 
 
-class string:
+class node:
     def __init__(self, val=''):
         self.val = val
 
@@ -284,7 +528,7 @@ class string:
         return self.val
 
     def __repr__(self):
-        return 'string({!r})'.format(self.val)
+        return 'node({!r})'.format(self.val)
 
     def __hash__(self):
         return hash((self.__class__, self.val))
@@ -303,82 +547,13 @@ class string:
         return self
 
     def splice_to(self, other, hooks):
-        hook = hooks.get('string')
+        hook = hooks.get('node')
         if hook:
             return other.consume(hook(self.val))
         return other.consume(self.val)
 
     def copy(self):
-        return string(self.val)
-
-
-class fail:
-    def __repr__(self):
-        return 'fail()'
-
-    def __hash__(self):
-        return hash(self.__class__)
-
-    def __eq__(self, other):
-        return self.__class__ is other.__class__
-
-    def get_value(self):
-        return self
-
-    def get_values(self):
-        return (self,)
-
-    def splice_to(self, other):
-        return other
-
-    def copy(self):
-        return self
-
-
-class char_range:
-    __slots__ = ('start', 'end')
-
-    def __init__(self, start=None, end=None):
-        self.start = start
-        self.end = end
-
-    def __repr__(self):
-        return 'char_range({!r}, {!r})'.format(
-            self.start,
-            self.end,
-        )
-
-    def __eq__(self, other):
-        return (
-            self.__class__ is other.__class__
-            and self.start == other.start
-            and self.end == other.end
-        )
-
-    def get_value(self):
-        return self
-
-    def get_values(self):
-        return (self.start, self.end)
-
-    def copy(self):
-        return char_range(
-            self.start,
-            self.end,
-        )
-
-    def append_start(self, val):
-        self.start = val
-        return self
-
-    def append_end(self, val):
-        self.end = val
-        return self
-
-    def splice_to(self, other, hooks):
-        other.append_start(self.start)
-        other.append_end(self.end)
-        return other
+        return node(self.val)
 
 
 class optional:
@@ -492,134 +667,6 @@ class repeat1:
         return other
 
 
-class append:
-    __slots__ = ('expr', 'name')
-
-    def __init__(self, expr=None, name=None):
-        self.expr = expr
-        self.name = name
-
-    def __repr__(self):
-        return 'append({!r}, {!r})'.format(
-            self.expr,
-            self.name,
-        )
-
-    def __eq__(self, other):
-        return (
-            self.__class__ is other.__class__
-            and self.expr == other.expr
-            and self.name == other.name
-        )
-
-    def get_value(self):
-        return self
-
-    def get_values(self):
-        return (self.expr, self.name)
-
-    def copy(self):
-        return append(
-            self.expr,
-            self.name,
-        )
-
-    def append_expr(self, val):
-        self.expr = val
-        return self
-
-    def append_name(self, val):
-        self.name = val
-        return self
-
-    def splice_to(self, other, hooks):
-        other.append_expr(self.expr)
-        other.append_name(self.name)
-        return other
-
-
-class top:
-    __slots__ = ('expr', 'name')
-
-    def __init__(self, expr=None, name=None):
-        self.expr = expr
-        self.name = name
-
-    def __repr__(self):
-        return 'top({!r}, {!r})'.format(
-            self.expr,
-            self.name,
-        )
-
-    def __eq__(self, other):
-        return (
-            self.__class__ is other.__class__
-            and self.expr == other.expr
-            and self.name == other.name
-        )
-
-    def get_value(self):
-        return self
-
-    def get_values(self):
-        return (self.expr, self.name)
-
-    def copy(self):
-        return top(
-            self.expr,
-            self.name,
-        )
-
-    def append_expr(self, val):
-        self.expr = val
-        return self
-
-    def append_name(self, val):
-        self.name = val
-        return self
-
-    def splice_to(self, other, hooks):
-        other.append_expr(self.expr)
-        other.append_name(self.name)
-        return other
-
-
-class node:
-    def __init__(self, val=''):
-        self.val = val
-
-    def __str__(self):
-        return self.val
-
-    def __repr__(self):
-        return 'node({!r})'.format(self.val)
-
-    def __hash__(self):
-        return hash((self.__class__, self.val))
-
-    def __eq__(self, other):
-        return self.__class__ is other.__class__ and self.val == other.val
-
-    def get_value(self):
-        return self.val
-
-    def get_values(self):
-        return (self.val,)
-
-    def consume(self, val):
-        self.val += val
-        return self
-
-    def splice_to(self, other, hooks):
-        hook = hooks.get('node')
-        if hook:
-            return other.consume(hook(self.val))
-        return other.consume(self.val)
-
-    def copy(self):
-        return node(self.val)
-
-
 class follow:
     __slots__ = ('expr',)
 
@@ -694,47 +741,6 @@ class not_follow:
         return other
 
 
-class sequence:
-    __slots__ = ('items',)
-
-    def __init__(self, items=None):
-        self.items = items or []
-
-    def __repr__(self):
-        return 'sequence({!r})'.format(
-            self.items,
-        )
-
-    def __eq__(self, other):
-        return (
-            self.__class__ is other.__class__
-            and self.items == other.items
-        )
-
-    def get_value(self):
-        return self.items
-
-    def get_values(self):
-        return (self.items,)
-
-    def copy(self):
-        return sequence(
-            list(self.items),
-        )
-
-    def append_items(self, val):
-        self.items.append(val)
-        return self
-
-    def appendmany_items(self, val):
-        self.items.extend(val)
-        return self
-
-    def splice_to(self, other, hooks):
-        other.appendmany_items(self.items)
-        return other
-
-
 class choice:
     __slots__ = ('items',)
 
@@ -776,16 +782,109 @@ class choice:
         return other
 
 
-class rule:
-    __slots__ = ('name', 'expr')
+class sequence:
+    __slots__ = ('items',)
 
-    def __init__(self, name=None, expr=None):
+    def __init__(self, items=None):
+        self.items = items or []
+
+    def __repr__(self):
+        return 'sequence({!r})'.format(
+            self.items,
+        )
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__
+            and self.items == other.items
+        )
+
+    def get_value(self):
+        return self.items
+
+    def get_values(self):
+        return (self.items,)
+
+    def copy(self):
+        return sequence(
+            list(self.items),
+        )
+
+    def append_items(self, val):
+        self.items.append(val)
+        return self
+
+    def appendmany_items(self, val):
+        self.items.extend(val)
+        return self
+
+    def splice_to(self, other, hooks):
+        other.appendmany_items(self.items)
+        return other
+
+
+class expand:
+    __slots__ = ('name', 'args')
+
+    def __init__(self, name=None, args=None):
         self.name = name
+        self.args = args or []
+
+    def __repr__(self):
+        return 'expand({!r}, {!r})'.format(
+            self.name,
+            self.args,
+        )
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__
+            and self.name == other.name
+            and self.args == other.args
+        )
+
+    def get_value(self):
+        return self
+
+    def get_values(self):
+        return (self.name, self.args)
+
+    def copy(self):
+        return expand(
+            self.name,
+            list(self.args),
+        )
+
+    def append_name(self, val):
+        self.name = val
+        return self
+
+    def append_args(self, val):
+        self.args.append(val)
+        return self
+
+    def appendmany_args(self, val):
+        self.args.extend(val)
+        return self
+
+    def splice_to(self, other, hooks):
+        other.append_name(self.name)
+        other.appendmany_args(self.args)
+        return other
+
+
+class macro:
+    __slots__ = ('name', 'args', 'expr')
+
+    def __init__(self, name=None, args=None, expr=None):
+        self.name = name
+        self.args = args or []
         self.expr = expr
 
     def __repr__(self):
-        return 'rule({!r}, {!r})'.format(
+        return 'macro({!r}, {!r}, {!r})'.format(
             self.name,
+            self.args,
             self.expr,
         )
 
@@ -793,6 +892,7 @@ class rule:
         return (
             self.__class__ is other.__class__
             and self.name == other.name
+            and self.args == other.args
             and self.expr == other.expr
         )
 
@@ -800,16 +900,25 @@ class rule:
         return self
 
     def get_values(self):
-        return (self.name, self.expr)
+        return (self.name, self.args, self.expr)
 
     def copy(self):
-        return rule(
+        return macro(
             self.name,
+            list(self.args),
             self.expr,
         )
 
     def append_name(self, val):
         self.name = val
+        return self
+
+    def append_args(self, val):
+        self.args.append(val)
+        return self
+
+    def appendmany_args(self, val):
+        self.args.extend(val)
         return self
 
     def append_expr(self, val):
@@ -818,6 +927,7 @@ class rule:
 
     def splice_to(self, other, hooks):
         other.append_name(self.name)
+        other.appendmany_args(self.args)
         other.append_expr(self.expr)
         return other
 
@@ -867,24 +977,26 @@ types_map = {
    'escape': escape,
    'octal': octal,
    'char': char,
-   'char_any': char_any,
    'reference': reference,
+   'rule': rule,
+   'string': string,
+   'fail': fail,
+   'char_any': char_any,
+   'char_range': char_range,
+   'append': append,
+   'top': top,
    'splice': splice,
    'top_splice': top_splice,
    'ignore': ignore,
-   'string': string,
-   'fail': fail,
-   'char_range': char_range,
+   'node': node,
    'optional': optional,
    'repeat': repeat,
    'repeat1': repeat1,
-   'append': append,
-   'top': top,
-   'node': node,
    'follow': follow,
    'not_follow': not_follow,
-   'sequence': sequence,
    'choice': choice,
-   'rule': rule,
+   'sequence': sequence,
+   'expand': expand,
+   'macro': macro,
    'grammar': grammar,
 }

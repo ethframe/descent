@@ -2,11 +2,16 @@ from descent.case import CaseVal
 from descent.helpers import parser_from_source
 
 JSON_GRAMMAR = r"""
+    t<S> <- S~ _
+    t<S, T> <- t<S> T
+    items<I> <- (I:items (t<","> I:items)*)?
+    collection<T, I, O, C> <- t<O, T> items<I> t<C>
+
     json <- _ value !.
     value <- string / number / object / array / true / false / null
-    object <- "{"~ _ @Dict (pair:items (","~ _ pair:items)*)? "}"~ _
-    pair <- @Pair string:key ":"~ _ value:value
-    array <- "["~ _ @Array (value:items (","~ _ value:items)*)? "]"~ _
+    object <- collection<@Object, pair, "{", "}">
+    pair <- @Pair string:key t<":"> value:value
+    array <- collection<@Array, value, "[", "]">
     string <- '"'~ @String char::* '"'~ _
     char <- @escape "\\"~ ["\\/bfnrt]
           / @unicode "\\u"~ hex hex hex hex
@@ -18,9 +23,9 @@ JSON_GRAMMAR = r"""
               (@Float^^ "."[0-9]+)?
               (@Float^^ [eE][-+]?[0-9]+)?
               _
-    true <- @True_ "true"~ _
-    false <- @False_ "false"~ _
-    null <- @Null "null"~ _
+    true <- t<"true", @True_>
+    false <- t<"false", @False_>
+    null <- t<"null", @Null>
 
     _ <- ([ \t\r\n]*)~
 """
@@ -41,7 +46,7 @@ JSON_CONVERTERS = {
 
 
 class Converter(CaseVal):
-    def dict(self, val):
+    def object(self, val):
         return {self(p.key): self(p.value) for p in val}
 
     def number(self, val):
@@ -55,6 +60,9 @@ class Converter(CaseVal):
 
     def array(self, val):
         return [self(v) for v in val]
+
+    def true_(self, val):
+        return True
 
     def false_(self, val):
         return False

@@ -1,21 +1,20 @@
 source = r"""
-    Grammar <- @grammar Spacing Definition:rules+ EndOfFile
-    Definition <- @rule Identifier:name LEFTARROW Expression:expr
+    Args<Item> <- MOPEN (Item:args (COMMA Item:args)*)? MCLOSE
+    LeftOp<Arg, Between, Type> <- Arg (Type^items (Between Arg:items)+)?
+    LeftOp<Arg, Type> <- Arg (Type^items Arg:items+)?
 
-    Expression <- Sequence (@choice^items (SLASH Sequence:items)+)?
-    Sequence <- Prefix (@sequence^items Prefix:items+)?
-    Prefix <- (AND @follow / NOT @not_follow) Suffix:expr / Suffix
-    Suffix <- AstOp (QUESTION @optional /
-                     STAR @repeat /
-                     PLUS @repeat1)^expr?
-    AstOp <- Primary ((APPEND @append /
-                       TOP @top)^expr Identifier:name /
-                      (SPLICE @splice /
-                       TOPSPLICE @top_splice /
-                       IGNORE @ignore)^expr)?
-    Primary <- Identifier !LEFTARROW
-             / OPEN Expression CLOSE
-             / Literal / Class / Any / Node
+    Grammar <- @grammar Spacing Definition:rules+ EndOfFile
+    Definition <- @rule Identifier:name (@macro^^ Args<Identifier>)?
+                  LEFTARROW Expression:expr
+
+    Expression <- LeftOp<Sequence, SLASH, @choice>
+    Sequence <- LeftOp<Prefix, @sequence>
+    Prefix <- (AND / NOT) Suffix:expr / Suffix
+    Suffix <- AstOp (QUESTION / STAR / PLUS)^expr?
+    AstOp <- Primary ((APPEND / TOP)^expr Identifier:name /
+                      (SPLICE / TOPSPLICE / IGNORE)^expr)?
+    Primary <- Identifier (@expand^name Args<Expression>)? !LEFTARROW
+             / OPEN Expression CLOSE / Literal / Class / Any / Node
 
     Identifier <- @reference IdentStart IdentCont* Spacing
     IdentStart <- [a-zA-Z_]
@@ -24,35 +23,41 @@ source = r"""
 
     Literal <- "'"~ @string (!"'" Char::)* "'"~ Spacing
              / '"'~ @string (!'"' Char::)* '"'~ Spacing
-    Class <- "["~ (!"]" Range (@choice^items (!"]" Range:items)+)? /
-                   @fail) "]"~ Spacing
+    Class <- "["~ (!"]" LeftOp<Range, !"]", @choice> / @fail) "]"~ Spacing
     Range <- @char_range Char:start "-"~ Char:end / Char
     Char <- @char char::
     char <- @escape "\\"~ [bfnrt'\"\[\]\\]
           / @octal "\\"~ [0-2][0-7][0-7]
           / @octal "\\"~ [0-7][0-7]?
           / @char !"\\" .
-    Any <- DOT @char_any
+    Any <- DOT
 
-    LEFTARROW <- "<-"~ Spacing
-    SLASH <- "/"~ Spacing
+    Token<S> <- S~ Spacing
+    Token<S, T> <- S~ Spacing T
 
-    AND <- "&"~ Spacing
-    NOT <- "!"~ Spacing
+    LEFTARROW <- Token<"<-">
+    SLASH <- Token<"/">
 
-    QUESTION <- "?"~ Spacing
-    STAR <- "*"~ Spacing
-    PLUS <- "+"~ Spacing
+    AND <- Token<"&", @follow>
+    NOT <- Token<"!", @not_follow>
 
-    APPEND <- ":"~ Spacing
-    TOP <- "^"~ Spacing
-    SPLICE <- "::"~ Spacing
-    TOPSPLICE <- "^^"~ Spacing
-    IGNORE <- "~"~ Spacing
+    QUESTION <- Token<"?", @optional>
+    STAR <- Token<"*", @repeat>
+    PLUS <- Token<"+", @repeat1>
 
-    OPEN <- "("~ Spacing
-    CLOSE <- ")"~ Spacing
-    DOT <- "."~ Spacing
+    DOT <- Token<".", @char_any>
+
+    APPEND <- Token<":", @append>
+    TOP <- Token<"^", @top>
+    SPLICE <- Token<"::", @splice>
+    TOPSPLICE <- Token<"^^", @top_splice>
+    IGNORE <- Token<"~", @ignore>
+
+    OPEN <- Token<"(">
+    CLOSE <- Token<")">
+    MOPEN <- Token<"<">
+    MCLOSE <- Token<">">
+    COMMA <- Token<",">
 
     Spacing <- (Space / Comment)*
     Comment <- "#"~ (!EndOfLine .~)* EndOfLine

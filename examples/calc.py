@@ -2,19 +2,23 @@ from descent.case import CaseVals
 from descent.helpers import parser_from_source
 
 CALC_GRAMMAR = r"""
+    t<S> <- S~ _
+    t<S, T> <- t<S> T
+    expr<E, O> <- E (O^left E:right)*
+    paren<O, E, C> <- t<O> E t<C>
+
     calc <- _ expr !.
-    expr <- mult (op1^left mult:right)*
-    mult <- term (op2^left term:right)*
-    term <- num / "("~ _ expr ")"~ _ / "-"~ _ @Neg expr:expr
+    expr <- p0
+    p0 <- expr<p1, t<"+", @Add> / t<"-", @Sub>>
+    p1 <- expr<p2, t<"*", @Mul> / t<"/", @Div>>
+    p2 <- num / paren<"(", expr, ")"> / t<"-", @Neg> expr:expr
+
     num <- @Int
            "-"?
            ("0" / [1-9][0-9]*)
            (@Float^^ "."[0-9]+)?
            (@Float^^ [eE][-+]?[0-9]+)?
            _
-
-    op1 <- ("+"~ _ @Add / "-"~ _ @Sub)
-    op2 <- ("*"~ _ @Mul / "/"~ _ @Div)
 
     _ <- ([ \t\r\n]*)~
 """
