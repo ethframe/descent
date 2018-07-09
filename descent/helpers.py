@@ -15,5 +15,7 @@ def parser_from_source(src, hooks=None):
             "Following rules are invalid: {}".format(", ".join(invalid))
         )
     types = infer_types(grammar)
+    if types is None:
+        raise ValueError("Got invalid type")
     ast = gen_ast_module(types)
     return compile_parser(grammar, ast, hooks)

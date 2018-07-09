@@ -102,6 +102,6 @@ def infer_types(gram):
     inf = infer(gram, [start], EmptyType(), reg=reg)
     top = inf[start].get((EmptyType(),), ())
     if isinstance(top, InvalidType):
-        return []
+        return None
     reg.update(top)
     return list(reg.types.values())

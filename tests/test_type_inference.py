@@ -66,11 +66,15 @@ type_cases = [
     ("A <- !@a", {NamedType("a")}),
     ("A <- &@a", {NamedType("a")}),
 
-    ("A <- @a 'a':a", set()),
-    ("A <- @a ('a'~):a", set()),
-    ("A <- @a (@b 'a'):a (@b 'a')::", set()),
-    ("A <- (@a 'a') (@b 'a'):a", set()),
-    ("A <- (@a 'a') (@b (@c 'a'):a)::", set()),
+    ("A <- A:: / @a", {NamedType("a")}),
+    ("A <- 'a' A:: / ''", set()),
+    ("A <- 'a' 'a'::", set()),
+
+    ("A <- @a 'a':a", None),
+    ("A <- @a ('a'~):a", None),
+    ("A <- @a (@b 'a'):a (@b 'a')::", None),
+    ("A <- (@a 'a') (@b 'a'):a", None),
+    ("A <- (@a 'a') (@b (@c 'a'):a)::", None),
 
     ("A <- @a @b:b? @b:a", {
         NamedType("b"),
@@ -89,9 +93,16 @@ type_cases = [
             ["a", "b"]
         )
     }),
+
+    ("A <- A:: / @a 'a':a", None),
+    ("A <- @a:a", None),
+    ("A <- 'a' @a:a", None),
+    ("A <- 'a' A:: / @a / @b", {NamedType("a"), NamedType("b")}),
+    ("A <- 'a' ('a' @a:a)::", None),
 ]
 
 
 @py.test.mark.parametrize("input, result", type_cases)
 def test_parse(input, result):
-    assert set(infer_types(convert_to_dict(parser.parse(input)))) == result
+    types = infer_types(convert_to_dict(parser.parse(input)))
+    assert types is None and result is None or set(types) == result
