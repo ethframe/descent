@@ -44,7 +44,7 @@ class Evaluator(CaseVals):
 
 
 def main():
-    calc_parser = parser_from_source(CALC_GRAMMAR, {})
+    calc_parser = parser_from_source(CALC_GRAMMAR)
     parsed = calc_parser.parse("(1 + 2) - 2 * 3 + 11 / 2.0 + - (3 / 2)")
 
     print(parsed)
