@@ -862,3 +862,29 @@ class grammar:
         other.appendmany_rules(self.rules)
         return other
 
+
+types_map = {
+   'escape': escape,
+   'octal': octal,
+   'char': char,
+   'char_any': char_any,
+   'reference': reference,
+   'splice': splice,
+   'top_splice': top_splice,
+   'ignore': ignore,
+   'string': string,
+   'fail': fail,
+   'char_range': char_range,
+   'optional': optional,
+   'repeat': repeat,
+   'repeat1': repeat1,
+   'append': append,
+   'top': top,
+   'node': node,
+   'follow': follow,
+   'not_follow': not_follow,
+   'sequence': sequence,
+   'choice': choice,
+   'rule': rule,
+   'grammar': grammar,
+}

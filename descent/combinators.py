@@ -240,19 +240,11 @@ class Compiler(CaseVal):
         return ignore(self(val))
 
 
-class DictWrapper:
-    def __init__(self, module):
-        self.module = module
-
-    def __getitem__(self, item):
-        return getattr(self.module, item)
-
-
-def compile_parser(gram, ast_module, splice_hooks=None):
+def compile_parser(gram, classes, splice_hooks=None):
     rules = {k: Rule(k) for k in gram}
     case = Compiler(
         rules=rules,
-        classes=DictWrapper(ast_module),
+        classes=classes,
         splice_hooks=splice_hooks or {}
     )
     for rule, body in gram.items():

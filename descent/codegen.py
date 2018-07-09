@@ -187,10 +187,24 @@ def gen_python_class(tp):
     raise ValueError(tp)
 
 
-def gen_ast_module(types):
-    classes = []
+def gen_types_map(types):
+    lines = ["types_map = {"]
     for t in types:
-        classes.append(gen_python_class(t))
+        lines.append("   {0!r}: {0},".format(t.name))
+    lines.append("}")
+    return "\n".join(lines)
+
+
+def gen_ast_module_src(types):
+    elements = []
+    for t in types:
+        elements.append(gen_python_class(t))
+    elements.append(gen_types_map(types))
+    return "\n".join(elements)
+
+
+def gen_ast_module(types):
+    src = gen_ast_module_src(types)
     module = type(sys)("ast")
-    exec("\n".join(classes), module.__dict__, module.__dict__)
-    return module
+    exec(src, module.__dict__, module.__dict__)
+    return getattr(module, "types_map")

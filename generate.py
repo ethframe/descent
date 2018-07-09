@@ -2,7 +2,9 @@ from descent.parser import parser
 from descent.source import source, hooks
 from descent.convert import convert_to_dict
 from descent.typeinference import infer_types
-from descent.codegen import gen_python_class, gen_ast_module
+from descent.codegen import (
+    gen_python_class, gen_ast_module, gen_ast_module_src
+)
 from descent.combinators import compile_parser
 
 
@@ -14,9 +16,8 @@ def generate():
     grammar = convert_to_dict(new_parser.parse(source))
     types = infer_types(grammar)
 
-    classes = [gen_python_class(type_) for type_ in types]
     with open("descent/ast.py", "w") as fp:
-        fp.write("\n".join(classes))
+        fp.write(gen_ast_module_src(types))
 
     with open("descent/grammar.py", "w") as fp:
         fp.write("from collections import OrderedDict\n\n")
