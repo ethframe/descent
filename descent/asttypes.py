@@ -274,7 +274,7 @@ class NodeType(Type):
 
 class OrType(Type):
     def __init__(self, items):
-        self.items = tuple(items)
+        self.items = frozenset(items)
 
     def __repr__(self):
         return "({})".format(' | '.join(repr(i) for i in self.items))
