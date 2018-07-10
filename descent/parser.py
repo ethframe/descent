@@ -4,3 +4,5 @@ from descent.grammar import grammar
 from descent.source import hooks
 
 parser = compile_parser(grammar, types_map, hooks)
+
+parse_grammar = parser.parse

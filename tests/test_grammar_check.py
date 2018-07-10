@@ -1,7 +1,7 @@
 import py.test
 
-from descent.parser import parser
-from descent.convert import convert_to_dict
+from descent.parser import parse_grammar
+from descent.macro import expand_macros
 from descent.grammarcheck import check_grammar
 
 WF_NULL = (True, True, False)
@@ -51,4 +51,4 @@ check_cases = [
 
 @py.test.mark.parametrize("input, result", check_cases)
 def test_parse(input, result):
-    assert check_grammar(convert_to_dict(parser.parse(input))) == result
+    assert check_grammar(expand_macros(parse_grammar(input))) == result

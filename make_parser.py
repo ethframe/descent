@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 
-from descent.parser import parser
-from descent.convert import convert_to_dict
+from descent.parser import parse_grammar
 from descent.grammarcheck import check_grammar, get_invalid
 from descent.typeinference import infer_types
 from descent.codegen import gen_ast_module_src
@@ -9,11 +8,10 @@ from descent.macro import expand_macros
 
 
 def generate(input):
-    parsed = parser.parse(input)
+    parsed = parse_grammar(input)
     if parsed is None:
         raise ValueError("Invald grammar")
-    expanded = expand_macros(parsed)
-    grammar = convert_to_dict(expanded)
+    grammar = expand_macros(parsed)
     invalid = get_invalid(check_grammar(grammar))
     if invalid:
         raise ValueError("Invalid rules: {}".format(", ".join(invalid)))

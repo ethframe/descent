@@ -1,8 +1,7 @@
-from descent.parser import parser
+from descent.parser import parse_grammar
 from descent.source import source, hooks
-from descent.convert import convert_to_dict
-from descent.typeinference import infer_types
 from descent.macro import expand_macros
+from descent.typeinference import infer_types
 from descent.codegen import (
     gen_python_class, gen_ast_module, gen_ast_module_src
 )
@@ -10,11 +9,11 @@ from descent.combinators import compile_parser
 
 
 def generate():
-    grammar = convert_to_dict(expand_macros(parser.parse(source)))
+    grammar = expand_macros(parse_grammar(source))
     types = infer_types(grammar)
 
     new_parser = compile_parser(grammar, gen_ast_module(types), hooks)
-    grammar = convert_to_dict(expand_macros(new_parser.parse(source)))
+    grammar = expand_macros(new_parser.parse(source))
     types = infer_types(grammar)
 
     with open("descent/ast.py", "w") as fp:

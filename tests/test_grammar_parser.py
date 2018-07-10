@@ -1,6 +1,6 @@
 import py.test
 
-from descent.parser import parser
+from descent.parser import parse_grammar
 from descent.ast import *
 
 
@@ -44,4 +44,4 @@ parse_cases = [
 
 @py.test.mark.parametrize("input, parsed", parse_cases)
 def test_parse(input, parsed):
-    assert parser.parse(input) == parsed
+    assert parse_grammar(input) == parsed

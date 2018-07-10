@@ -1,7 +1,7 @@
 import py.test
 
-from descent.parser import parser
-from descent.convert import convert_to_dict
+from descent.parser import parse_grammar
+from descent.macro import expand_macros
 from descent.typeinference import infer_types
 from descent.asttypes import NamedType, TokenType, NodeType, Field
 
@@ -104,5 +104,5 @@ type_cases = [
 
 @py.test.mark.parametrize("input, result", type_cases)
 def test_parse(input, result):
-    types = infer_types(convert_to_dict(parser.parse(input)))
+    types = infer_types(expand_macros(parse_grammar(input)))
     assert types is None and result is None or set(types) == result
