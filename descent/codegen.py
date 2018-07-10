@@ -38,8 +38,8 @@ def gen_namedtype(tp):
         ]),
         _defm("get_value", [], ["return self"]),
         _defm("get_values", [], ["return (self,)"]),
-        _defm("splice_to", ["other"], ["return other"]),
         _defm("copy", [], ["return self"]),
+        _defm("splice_to", ["other"], ["return other"]),
         ""
     ])
 
@@ -59,6 +59,7 @@ def gen_tokentype(tp):
         ]),
         _defm("get_value", [], ["return self.val"]),
         _defm("get_values", [], ["return (self.val,)"]),
+        _defm("copy", [], ["return {}(self.val)".format(tp.name)]),
         _defm("consume", ["val"], ["self.val += val", "return self"]),
         _defm("splice_to", ["other", "hooks"], [
             "hook = hooks.get('{}')".format(tp.name),
@@ -66,7 +67,6 @@ def gen_tokentype(tp):
             ["return other.consume(hook(self.val))"],
             "return other.consume(self.val)"
         ]),
-        _defm("copy", [], ["return {}(self.val)".format(tp.name)]),
         ""
     ])
 

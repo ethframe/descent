@@ -20,6 +20,9 @@ class escape:
     def get_values(self):
         return (self.val,)
 
+    def copy(self):
+        return escape(self.val)
+
     def consume(self, val):
         self.val += val
         return self
@@ -29,9 +32,6 @@ class escape:
         if hook:
             return other.consume(hook(self.val))
         return other.consume(self.val)
-
-    def copy(self):
-        return escape(self.val)
 
 
 class octal:
@@ -56,6 +56,9 @@ class octal:
     def get_values(self):
         return (self.val,)
 
+    def copy(self):
+        return octal(self.val)
+
     def consume(self, val):
         self.val += val
         return self
@@ -65,9 +68,6 @@ class octal:
         if hook:
             return other.consume(hook(self.val))
         return other.consume(self.val)
-
-    def copy(self):
-        return octal(self.val)
 
 
 class char:
@@ -92,6 +92,9 @@ class char:
     def get_values(self):
         return (self.val,)
 
+    def copy(self):
+        return char(self.val)
+
     def consume(self, val):
         self.val += val
         return self
@@ -101,9 +104,6 @@ class char:
         if hook:
             return other.consume(hook(self.val))
         return other.consume(self.val)
-
-    def copy(self):
-        return char(self.val)
 
 
 class reference:
@@ -128,6 +128,9 @@ class reference:
     def get_values(self):
         return (self.val,)
 
+    def copy(self):
+        return reference(self.val)
+
     def consume(self, val):
         self.val += val
         return self
@@ -137,9 +140,6 @@ class reference:
         if hook:
             return other.consume(hook(self.val))
         return other.consume(self.val)
-
-    def copy(self):
-        return reference(self.val)
 
 
 class rule:
@@ -211,6 +211,9 @@ class string:
     def get_values(self):
         return (self.val,)
 
+    def copy(self):
+        return string(self.val)
+
     def consume(self, val):
         self.val += val
         return self
@@ -220,9 +223,6 @@ class string:
         if hook:
             return other.consume(hook(self.val))
         return other.consume(self.val)
-
-    def copy(self):
-        return string(self.val)
 
 
 class fail:
@@ -241,11 +241,11 @@ class fail:
     def get_values(self):
         return (self,)
 
-    def splice_to(self, other):
-        return other
-
     def copy(self):
         return self
+
+    def splice_to(self, other):
+        return other
 
 
 class char_any:
@@ -264,11 +264,11 @@ class char_any:
     def get_values(self):
         return (self,)
 
-    def splice_to(self, other):
-        return other
-
     def copy(self):
         return self
+
+    def splice_to(self, other):
+        return other
 
 
 class char_range:
@@ -542,6 +542,9 @@ class node:
     def get_values(self):
         return (self.val,)
 
+    def copy(self):
+        return node(self.val)
+
     def consume(self, val):
         self.val += val
         return self
@@ -551,9 +554,6 @@ class node:
         if hook:
             return other.consume(hook(self.val))
         return other.consume(self.val)
-
-    def copy(self):
-        return node(self.val)
 
 
 class optional:
