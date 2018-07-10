@@ -54,6 +54,11 @@ class TypeInference(CaseFix):
 
     not_follow = follow = ignore
 
+    def replace(self, val, ctype):
+        a = self(val.expr, EmptyType())
+        self.reg.update(a)
+        return ctype.splice(StringType())
+
     def char(self, val, ctype):
         return ctype.splice(StringType())
 

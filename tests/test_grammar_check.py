@@ -16,6 +16,7 @@ check_cases = [
     ("A <- 'a'", {"A": WF_NOT_NULL}),
     ("A <- .", {"A": WF_NOT_NULL}),
     ("A <- ''", {"A": WF_NULL}),
+    ("A <- 'a':''", {"A": WF_NOT_NULL}),
     ("A <- [a-z0-9_]", {"A": WF_NOT_NULL}),
     ("A <- []", {"A": WF_NOT_NULL}),
     ("A <- 'a' A / ''", {"A": WF_NULL}),

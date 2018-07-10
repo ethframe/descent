@@ -162,6 +162,15 @@ def ignore(parser):
     return _parser
 
 
+def replace(parser, value):
+    def _parser(stream, pos, tree):
+        new_pos, new_tree = parser(stream, pos, Ignore())
+        if new_tree is None:
+            return pos, None
+        return new_pos, tree.consume(value)
+    return _parser
+
+
 def char_sequence(val):
     def _parser(stream, pos, tree):
         if pos + len(val) <= len(stream) and stream.startswith(val, pos):
@@ -238,6 +247,9 @@ class Compiler(CaseVal):
 
     def ignore(self, val):
         return ignore(self(val))
+
+    def replace(self, val):
+        return replace(self(val.expr), str(val.value))
 
 
 def compile_parser(gram, classes, splice_hooks=None):

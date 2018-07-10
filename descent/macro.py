@@ -34,7 +34,7 @@ class Macroexpander(Case):
 
     repeat1 = repeat = optional = _expand_expr
     follow = not_follow = _expand_expr
-    ignore = top_splice = splice = top = append = _expand_expr
+    replace = ignore = top_splice = splice = top = append = _expand_expr
 
     def _expand_items(self, val, env):
         val.items = [self(item, env) for item in val.items]
@@ -59,7 +59,7 @@ class Copyingexpander(Case):
 
     repeat1 = repeat = optional = _expand_expr
     follow = not_follow = _expand_expr
-    ignore = top_splice = splice = top = append = _expand_expr
+    replace = ignore = top_splice = splice = top = append = _expand_expr
 
     def _expand_items(self, val, env):
         val.items = [self(item.copy(), env) for item in val.items]

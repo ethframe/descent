@@ -20,6 +20,7 @@ parse_cases = [
     ("A <- []", single_rule_grammar("A", fail())),
     ("A <- [ab]", single_rule_grammar("A", choice([char("a"), char("b")]))),
     ("A <- .", single_rule_grammar("A", char_any())),
+    ("A <- .:'a'", single_rule_grammar("A", replace(char_any(), string("a")))),
     ("A <- B", single_rule_grammar("A", reference("B"))),
     ("A <- B / C", single_rule_grammar(
         "A", choice([reference("B"), reference("C")])

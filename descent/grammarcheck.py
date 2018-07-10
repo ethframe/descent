@@ -79,6 +79,9 @@ class GrammarCheck(CaseFix):
     def ignore(self, val):
         return self(val)
 
+    def replace(self, val):
+        return self(val.expr)
+
     def fail(self, val):
         return state(True, False, False)
 

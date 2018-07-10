@@ -12,6 +12,7 @@ source = r"""
     Prefix <- (AND / NOT) Suffix:expr / Suffix
     Suffix <- AstOp (QUESTION / STAR / PLUS)^expr?
     AstOp <- Primary ((APPEND / TOP)^expr Identifier:name /
+                      REPLACE^expr Literal:value /
                       (SPLICE / TOPSPLICE / IGNORE)^expr)?
     Primary <- Identifier (@expand^name Args<Expression>)? !LEFTARROW
              / OPEN Expression CLOSE / Literal / Class / Any / Node
@@ -21,15 +22,14 @@ source = r"""
     IdentCont <- IdentStart / [0-9]
     Node <- @node "@"~ IdentStart IdentCont* Spacing
 
-    Literal <- "'"~ @string (!"'" Char::)* "'"~ Spacing
-             / '"'~ @string (!'"' Char::)* '"'~ Spacing
+    String<Q> <- Q~ (!Q Char::)* Q~ Spacing
+    Literal <- @string (String<'"'> / String<"'">)
     Class <- "["~ (!"]" LeftOp<Range, !"]", @choice> / @fail) "]"~ Spacing
     Range <- @char_range Char:start "-"~ Char:end / Char
     Char <- @char char::
-    char <- @escape "\\"~ [bfnrt'\"\[\]\\]
-          / @octal "\\"~ [0-2][0-7][0-7]
-          / @octal "\\"~ [0-7][0-7]?
-          / @char !"\\" .
+    char <- @char (!"\\" . / "\\"~ ['\"\[\]\\])
+          / @escape "\\"~ [bfnrt]
+          / @octal "\\"~ ([0-2][0-7][0-7] / [0-7][0-7]?)
     Any <- DOT
 
     Token<S> <- S~ Spacing
@@ -48,6 +48,7 @@ source = r"""
     DOT <- Token<".", @char_any>
 
     APPEND <- Token<":", @append>
+    REPLACE <- Token<":", @replace>
     TOP <- Token<"^", @top>
     SPLICE <- Token<"::", @splice>
     TOPSPLICE <- Token<"^^", @top_splice>
@@ -73,11 +74,6 @@ hooks = {
         "r": "\r",
         "n": "\n",
         "t": "\t",
-        "\\": "\\",
-        '"': '"',
-        "'": "'",
-        "[": "[",
-        "]": "]"
     }.__getitem__,
     "octal": lambda v: chr(int(v, 8))
 }

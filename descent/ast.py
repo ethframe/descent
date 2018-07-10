@@ -1,3 +1,39 @@
+class char:
+    def __init__(self, val=''):
+        self.val = val
+
+    def __str__(self):
+        return self.val
+
+    def __repr__(self):
+        return 'char({!r})'.format(self.val)
+
+    def __hash__(self):
+        return hash((self.__class__, self.val))
+
+    def __eq__(self, other):
+        return self.__class__ is other.__class__ and self.val == other.val
+
+    def get_value(self):
+        return self.val
+
+    def get_values(self):
+        return (self.val,)
+
+    def copy(self):
+        return char(self.val)
+
+    def consume(self, val):
+        self.val += val
+        return self
+
+    def splice_to(self, other, hooks):
+        hook = hooks.get('char')
+        if hook:
+            return other.consume(hook(self.val))
+        return other.consume(self.val)
+
+
 class escape:
     def __init__(self, val=''):
         self.val = val
@@ -70,7 +106,7 @@ class octal:
         return other.consume(self.val)
 
 
-class char:
+class string:
     def __init__(self, val=''):
         self.val = val
 
@@ -78,7 +114,7 @@ class char:
         return self.val
 
     def __repr__(self):
-        return 'char({!r})'.format(self.val)
+        return 'string({!r})'.format(self.val)
 
     def __hash__(self):
         return hash((self.__class__, self.val))
@@ -93,14 +129,14 @@ class char:
         return (self.val,)
 
     def copy(self):
-        return char(self.val)
+        return string(self.val)
 
     def consume(self, val):
         self.val += val
         return self
 
     def splice_to(self, other, hooks):
-        hook = hooks.get('char')
+        hook = hooks.get('string')
         if hook:
             return other.consume(hook(self.val))
         return other.consume(self.val)
@@ -187,42 +223,6 @@ class rule:
         if self.expr is not None:
             other.append_expr(self.expr)
         return other
-
-
-class string:
-    def __init__(self, val=''):
-        self.val = val
-
-    def __str__(self):
-        return self.val
-
-    def __repr__(self):
-        return 'string({!r})'.format(self.val)
-
-    def __hash__(self):
-        return hash((self.__class__, self.val))
-
-    def __eq__(self, other):
-        return self.__class__ is other.__class__ and self.val == other.val
-
-    def get_value(self):
-        return self.val
-
-    def get_values(self):
-        return (self.val,)
-
-    def copy(self):
-        return string(self.val)
-
-    def consume(self, val):
-        self.val += val
-        return self
-
-    def splice_to(self, other, hooks):
-        hook = hooks.get('string')
-        if hook:
-            return other.consume(hook(self.val))
-        return other.consume(self.val)
 
 
 class fail:
@@ -667,6 +667,52 @@ class repeat1:
         return other
 
 
+class replace:
+    __slots__ = ('expr', 'value')
+
+    def __init__(self, expr=None, value=None):
+        self.expr = expr
+        self.value = value
+
+    def __repr__(self):
+        return 'replace({!r}, {!r})'.format(
+            self.expr,
+            self.value,
+        )
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__
+            and self.expr == other.expr
+            and self.value == other.value
+        )
+
+    def get_value(self):
+        return self
+
+    def get_values(self):
+        return (self.expr, self.value)
+
+    def copy(self):
+        return replace(
+            self.expr,
+            self.value,
+        )
+
+    def append_expr(self, val):
+        self.expr = val
+        return self
+
+    def append_value(self, val):
+        self.value = val
+        return self
+
+    def splice_to(self, other, hooks):
+        other.append_expr(self.expr)
+        other.append_value(self.value)
+        return other
+
+
 class follow:
     __slots__ = ('expr',)
 
@@ -974,12 +1020,12 @@ class grammar:
 
 
 types_map = {
+   'char': char,
    'escape': escape,
    'octal': octal,
-   'char': char,
+   'string': string,
    'reference': reference,
    'rule': rule,
-   'string': string,
    'fail': fail,
    'char_any': char_any,
    'char_range': char_range,
@@ -992,6 +1038,7 @@ types_map = {
    'optional': optional,
    'repeat': repeat,
    'repeat1': repeat1,
+   'replace': replace,
    'follow': follow,
    'not_follow': not_follow,
    'choice': choice,

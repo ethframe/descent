@@ -13,9 +13,10 @@ JSON_GRAMMAR = r"""
     pair <- @Pair string:key t<":"> value:value
     array <- collection<@Array, value, "[", "]">
     string <- '"'~ @String char::* '"'~ _
-    char <- @escape "\\"~ ["\\/bfnrt]
+    char <- @char (!["\\\b\f\t\r\n] . / "\\"~ ["\\/])
+          / @escape "\\"~ ("b":"\b" / "f":"\f" / "t":"\t"
+                           / "r":"\r" / "n":"\n")
           / @unicode "\\u"~ hex hex hex hex
-          / @char !["\\\b\f\t\r\n] .
     hex <- [0-9a-fA-F]
     number <- @Number
               "-"?
@@ -31,16 +32,6 @@ JSON_GRAMMAR = r"""
 """
 
 JSON_CONVERTERS = {
-    "escape": {
-        '"': '"',
-        "\\": "\\",
-        "/": "/",
-        "b": "\b",
-        "f": "\f",
-        "n": "\n",
-        "r": "\r",
-        "t": "\t"
-    }.__getitem__,
     "unicode": lambda v: chr(int(v, 16))
 }
 

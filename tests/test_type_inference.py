@@ -15,6 +15,7 @@ type_cases = [
     ("A <- @a [a-z]", {TokenType("a")}),
     ("A <- 'a' @a^^", {TokenType("a")}),
     ("A <- @a::", {NamedType("a")}),
+    ("A <- @a @b:'a'", {TokenType("a"), NamedType("b")}),
     ("A <- @a / @b", {NamedType("a"), NamedType("b")}),
     ("A <- (@a / @b)::", {NamedType("a"), NamedType("b")}),
     ("A <- @a @b:a", {

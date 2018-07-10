@@ -140,16 +140,7 @@ grammar = OrderedDict(
                 [
                     sequence(
                         [
-                            choice(
-                                [
-                                    sequence(
-                                        [reference("AND"), node("follow")]
-                                    ),
-                                    sequence(
-                                        [reference("NOT"), node("not_follow")]
-                                    ),
-                                ]
-                            ),
+                            choice([reference("AND"), reference("NOT")]),
                             append(reference("Suffix"), reference("expr")),
                         ]
                     ),
@@ -199,6 +190,18 @@ grammar = OrderedDict(
                                         append(
                                             reference("Identifier"),
                                             reference("name"),
+                                        ),
+                                    ]
+                                ),
+                                sequence(
+                                    [
+                                        top(
+                                            reference("REPLACE"),
+                                            reference("expr"),
+                                        ),
+                                        append(
+                                            reference("Literal"),
+                                            reference("value"),
                                         ),
                                     ]
                                 ),
@@ -327,38 +330,41 @@ grammar = OrderedDict(
         ),
         (
             "Literal",
-            choice(
+            sequence(
                 [
-                    sequence(
+                    node("string"),
+                    choice(
                         [
-                            ignore(string("'")),
-                            node("string"),
-                            repeat(
-                                sequence(
-                                    [
-                                        not_follow(string("'")),
-                                        splice(reference("Char")),
-                                    ]
-                                )
+                            sequence(
+                                [
+                                    ignore(string('"')),
+                                    repeat(
+                                        sequence(
+                                            [
+                                                not_follow(string('"')),
+                                                splice(reference("Char")),
+                                            ]
+                                        )
+                                    ),
+                                    ignore(string('"')),
+                                    reference("Spacing"),
+                                ]
                             ),
-                            ignore(string("'")),
-                            reference("Spacing"),
-                        ]
-                    ),
-                    sequence(
-                        [
-                            ignore(string('"')),
-                            node("string"),
-                            repeat(
-                                sequence(
-                                    [
-                                        not_follow(string('"')),
-                                        splice(reference("Char")),
-                                    ]
-                                )
+                            sequence(
+                                [
+                                    ignore(string("'")),
+                                    repeat(
+                                        sequence(
+                                            [
+                                                not_follow(string("'")),
+                                                splice(reference("Char")),
+                                            ]
+                                        )
+                                    ),
+                                    ignore(string("'")),
+                                    reference("Spacing"),
+                                ]
                             ),
-                            ignore(string('"')),
-                            reference("Spacing"),
                         ]
                     ),
                 ]
@@ -441,6 +447,32 @@ grammar = OrderedDict(
                 [
                     sequence(
                         [
+                            node("char"),
+                            choice(
+                                [
+                                    sequence(
+                                        [not_follow(string("\\")), char_any()]
+                                    ),
+                                    sequence(
+                                        [
+                                            ignore(string("\\")),
+                                            choice(
+                                                [
+                                                    char("'"),
+                                                    char('"'),
+                                                    char("["),
+                                                    char("]"),
+                                                    char("\\"),
+                                                ]
+                                            ),
+                                        ]
+                                    ),
+                                ]
+                            ),
+                        ]
+                    ),
+                    sequence(
+                        [
                             node("escape"),
                             ignore(string("\\")),
                             choice(
@@ -450,11 +482,6 @@ grammar = OrderedDict(
                                     char("n"),
                                     char("r"),
                                     char("t"),
-                                    char("'"),
-                                    char('"'),
-                                    char("["),
-                                    char("]"),
-                                    char("\\"),
                                 ]
                             ),
                         ]
@@ -463,21 +490,28 @@ grammar = OrderedDict(
                         [
                             node("octal"),
                             ignore(string("\\")),
-                            char_range(char("0"), char("2")),
-                            char_range(char("0"), char("7")),
-                            char_range(char("0"), char("7")),
+                            choice(
+                                [
+                                    sequence(
+                                        [
+                                            char_range(char("0"), char("2")),
+                                            char_range(char("0"), char("7")),
+                                            char_range(char("0"), char("7")),
+                                        ]
+                                    ),
+                                    sequence(
+                                        [
+                                            char_range(char("0"), char("7")),
+                                            optional(
+                                                char_range(
+                                                    char("0"), char("7")
+                                                )
+                                            ),
+                                        ]
+                                    ),
+                                ]
+                            ),
                         ]
-                    ),
-                    sequence(
-                        [
-                            node("octal"),
-                            ignore(string("\\")),
-                            char_range(char("0"), char("7")),
-                            optional(char_range(char("0"), char("7"))),
-                        ]
-                    ),
-                    sequence(
-                        [node("char"), not_follow(string("\\")), char_any()]
                     ),
                 ]
             ),
@@ -485,8 +519,18 @@ grammar = OrderedDict(
         ("Any", reference("DOT")),
         ("LEFTARROW", sequence([ignore(string("<-")), reference("Spacing")])),
         ("SLASH", sequence([ignore(string("/")), reference("Spacing")])),
-        ("AND", sequence([ignore(string("&")), reference("Spacing")])),
-        ("NOT", sequence([ignore(string("!")), reference("Spacing")])),
+        (
+            "AND",
+            sequence(
+                [ignore(string("&")), reference("Spacing"), node("follow")]
+            ),
+        ),
+        (
+            "NOT",
+            sequence(
+                [ignore(string("!")), reference("Spacing"), node("not_follow")]
+            ),
+        ),
         (
             "QUESTION",
             sequence(
@@ -515,6 +559,12 @@ grammar = OrderedDict(
             "APPEND",
             sequence(
                 [ignore(string(":")), reference("Spacing"), node("append")]
+            ),
+        ),
+        (
+            "REPLACE",
+            sequence(
+                [ignore(string(":")), reference("Spacing"), node("replace")]
             ),
         ),
         (
