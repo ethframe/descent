@@ -209,11 +209,11 @@ class NodeType(Type):
         )
 
     def append(self, other, name):
-        if isinstance(other, InvalidType):
-            return InvalidType()
         if isinstance(other, UnknownType):
             return other
         other = other.flat()
+        if isinstance(other, InvalidType):
+            return other
         fields = dict(self.fields)
         order = list(self.order)
         if name in fields:
@@ -274,13 +274,14 @@ class NodeType(Type):
 
 class OrType(Type):
     def __init__(self, items):
-        self.items = frozenset(items)
+        self.items = tuple(items)
 
     def __repr__(self):
         return "({})".format(' | '.join(repr(i) for i in self.items))
 
     def __eq__(self, other):
-        return self.__class__ is other.__class__ and self.items == other.items
+        return self.__class__ is other.__class__ \
+            and set(self.items) == set(other.items)
 
     def __hash__(self):
         return hash((self.__class__, self.items))
