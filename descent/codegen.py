@@ -36,8 +36,8 @@ def gen_namedtype(tp):
         _defm("__eq__", ["other"], [
             "return self.__class__ is other.__class__"
         ]),
-        _defm("get_value", [], ["return self"]),
-        _defm("get_values", [], ["return (self,)"]),
+        _defm("unapply1", [], ["return self"]),
+        _defm("unapply", [], ["return (self,)"]),
         _defm("copy", [], ["return self"]),
         _defm("splice_to", ["other"], ["return other"]),
         ""
@@ -57,14 +57,14 @@ def gen_tokentype(tp):
             "return self.__class__ is other.__class__"
             + " and self.val == other.val"
         ]),
-        _defm("get_value", [], ["return self.val"]),
-        _defm("get_values", [], ["return (self.val,)"]),
+        _defm("unapply1", [], ["return self.val"]),
+        _defm("unapply", [], ["return (self.val,)"]),
         _defm("copy", [], ["return {}(self.val)".format(tp.name)]),
         _defm("consume", ["val"], ["self.val += val", "return self"]),
-        _defm("splice_to", ["other", "hooks"], [
-            "hook = hooks.get('{}')".format(tp.name),
-            "if hook:",
-            ["return other.consume(hook(self.val))"],
+        _defm("splice_to", ["other", "converters"], [
+            "converter = converters.get('{}')".format(tp.name),
+            "if converter:",
+            ["return other.consume(converter(self.val))"],
             "return other.consume(self.val)"
         ]),
         ""
@@ -112,12 +112,12 @@ def gen_nodetype(tp):
                 ")"
             ],
             "",
-            "def get_value(self):",
+            "def unapply1(self):",
             ["return self.{}".format(list(tp.fields)[0])
              if len(tp.fields) == 1 else
              "return self"],
             "",
-            "def get_values(self):",
+            "def unapply(self):",
             ["return (self.{},)".format(list(tp.fields)[0])
              if len(tp.fields) == 1 else
              "return ({})".format(
@@ -144,7 +144,7 @@ def gen_nodetype(tp):
         ])
         if field.arr:
             lines.append([
-                "def appendmany_{}(self, val):".format(name),
+                "def extend_{}(self, val):".format(name),
                 ["self.{}.extend(val)".format(name),
                  "return self"],
                 ""
@@ -155,7 +155,7 @@ def gen_nodetype(tp):
     for name, field in tp.fields.items():
         if field.arr:
             lines.append(
-                "        other.appendmany_{0}(self.{0})".format(name)
+                "        other.extend_{0}(self.{0})".format(name)
             )
         elif field.opt:
             lines.extend([

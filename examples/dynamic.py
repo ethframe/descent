@@ -1,6 +1,6 @@
 from itertools import product
 
-from descent.case import CaseVals
+from descent.case import CaseUnapply
 from descent.helpers import parser_from_source
 
 
@@ -74,7 +74,7 @@ TYPES_GRAMMAR = r"""
 types_parser = parser_from_source(TYPES_GRAMMAR)
 
 
-class TypesDef(CaseVals):
+class TypesDef(CaseUnapply):
     def types(self, items):
         for item in items:
             self(item)
@@ -141,7 +141,7 @@ class Definitions:
         raise TypeError(name, args, ts)
 
 
-class Types(CaseVals):
+class Types(CaseUnapply):
     _types = Definitions("""
         dynamic
         string <: dynamic
@@ -201,7 +201,7 @@ class Types(CaseVals):
         return self._types.func(str(name), tuple(self(arg) for arg in args))
 
 
-class Evaluate(CaseVals):
+class Evaluate(CaseUnapply):
     def statements(self, statements):
         for statement in statements:
             self(statement)

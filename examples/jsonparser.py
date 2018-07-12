@@ -1,4 +1,4 @@
-from descent.case import CaseVal
+from descent.case import CaseUnapply1
 from descent.helpers import parser_from_source
 
 JSON_GRAMMAR = r"""
@@ -36,7 +36,7 @@ JSON_CONVERTERS = {
 }
 
 
-class Converter(CaseVal):
+class Converter(CaseUnapply1):
     def object(self, val):
         return {self(p.key): self(p.value) for p in val}
 

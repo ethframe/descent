@@ -1,4 +1,4 @@
-from descent.case import CaseVals
+from descent.case import CaseUnapply
 from descent.helpers import parser_from_source
 
 CALC_GRAMMAR = r"""
@@ -28,7 +28,7 @@ CALC_GRAMMAR = r"""
 """
 
 
-class Evaluator(CaseVals):
+class Evaluator(CaseUnapply):
     def add(self, left, right):
         return self(left) + self(right)
 

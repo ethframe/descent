@@ -1,4 +1,4 @@
-from descent.case import CaseVal
+from descent.case import CaseUnapply1
 
 
 class Tree:
@@ -135,21 +135,21 @@ def top(parser, name):
     return _parser
 
 
-def splice(parser, splice_hooks):
+def splice(parser, converters):
     def _parser(stream, pos, tree):
         new_pos, subtree = parser(stream, pos, Empty())
         if subtree is None:
             return pos, None
-        return new_pos, subtree.splice_to(tree, splice_hooks)
+        return new_pos, subtree.splice_to(tree, converters)
     return _parser
 
 
-def top_splice(parser, splice_hooks):
+def top_splice(parser, converters):
     def _parser(stream, pos, tree):
         new_pos, top_tree = parser(stream, pos, Empty())
         if top_tree is None:
             return pos, None
-        return new_pos, tree.splice_to(top_tree, splice_hooks)
+        return new_pos, tree.splice_to(top_tree, converters)
     return _parser
 
 
@@ -193,7 +193,7 @@ def char_any(stream, pos, tree):
     return pos, None
 
 
-class Compiler(CaseVal):
+class Compiler(CaseUnapply1):
     def char_any(self, val):
         return char_any
 
@@ -240,10 +240,10 @@ class Compiler(CaseVal):
         return top(self(val.expr), str(val.name))
 
     def splice(self, val):
-        return splice(self(val), self.splice_hooks)
+        return splice(self(val), self.converters)
 
     def top_splice(self, val):
-        return top_splice(self(val), self.splice_hooks)
+        return top_splice(self(val), self.converters)
 
     def ignore(self, val):
         return ignore(self(val))
@@ -252,12 +252,12 @@ class Compiler(CaseVal):
         return replace(self(val.expr), str(val.value))
 
 
-def compile_parser(gram, classes, splice_hooks=None):
+def compile_parser(gram, classes, converters=None):
     rules = {k: Rule(k) for k in gram}
     case = Compiler(
         rules=rules,
         classes=classes,
-        splice_hooks=splice_hooks or {}
+        converters=converters or {}
     )
     for rule, body in gram.items():
         rules[rule].define(case(body))

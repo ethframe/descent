@@ -8,13 +8,13 @@ class Case:
         return method(val, *args)
 
 
-class CaseVal(Case):
+class CaseUnapply1(Case):
     def __call__(self, val, *args):
         method = getattr(self, type(val).__name__.lower())
-        return method(val.get_value(), *args)
+        return method(val.unapply1(), *args)
 
 
-class CaseVals(Case):
+class CaseUnapply(Case):
     def __call__(self, val, *args):
         method = getattr(self, type(val).__name__.lower())
-        return method(*val.get_values(), *args)
+        return method(*val.unapply(), *args)

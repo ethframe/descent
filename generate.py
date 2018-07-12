@@ -1,5 +1,5 @@
 from descent.parser import parse_grammar
-from descent.source import source, hooks
+from descent.source import source, converters
 from descent.macro import expand_macros
 from descent.typeinference import infer_types
 from descent.codegen import (
@@ -12,7 +12,7 @@ def generate():
     grammar = expand_macros(parse_grammar(source))
     types = infer_types(grammar)
 
-    new_parser = compile_parser(grammar, gen_ast_module(types), hooks)
+    new_parser = compile_parser(grammar, gen_ast_module(types), converters)
     grammar = expand_macros(new_parser.parse(source))
     types = infer_types(grammar)
 

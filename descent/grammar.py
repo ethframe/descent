@@ -13,6 +13,7 @@ from .ast import (
     reference,
     repeat,
     repeat1,
+    replace,
     sequence,
     splice,
     string,
@@ -458,30 +459,39 @@ grammar = OrderedDict(
                                             ignore(string("\\")),
                                             choice(
                                                 [
-                                                    char("'"),
-                                                    char('"'),
-                                                    char("["),
-                                                    char("]"),
-                                                    char("\\"),
+                                                    choice(
+                                                        [
+                                                            char("'"),
+                                                            char('"'),
+                                                            char("["),
+                                                            char("]"),
+                                                            char("\\"),
+                                                        ]
+                                                    ),
+                                                    replace(
+                                                        string("b"),
+                                                        string("\x08"),
+                                                    ),
+                                                    replace(
+                                                        string("f"),
+                                                        string("\x0c"),
+                                                    ),
+                                                    replace(
+                                                        string("n"),
+                                                        string("\n"),
+                                                    ),
+                                                    replace(
+                                                        string("r"),
+                                                        string("\r"),
+                                                    ),
+                                                    replace(
+                                                        string("t"),
+                                                        string("\t"),
+                                                    ),
                                                 ]
                                             ),
                                         ]
                                     ),
-                                ]
-                            ),
-                        ]
-                    ),
-                    sequence(
-                        [
-                            node("escape"),
-                            ignore(string("\\")),
-                            choice(
-                                [
-                                    char("b"),
-                                    char("f"),
-                                    char("n"),
-                                    char("r"),
-                                    char("t"),
                                 ]
                             ),
                         ]

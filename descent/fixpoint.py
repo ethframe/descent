@@ -1,7 +1,7 @@
-from descent.case import CaseVal
+from descent.case import CaseUnapply1
 
 
-class CaseFix(CaseVal):
+class CaseFix(CaseUnapply1):
     def __init__(self, fix, **kwargs):
         super().__init__(**kwargs)
         self.fix = fix

@@ -27,8 +27,9 @@ source = r"""
     Class <- "["~ (!"]" LeftOp<Range, !"]", @choice> / @fail) "]"~ Spacing
     Range <- @char_range Char:start "-"~ Char:end / Char
     Char <- @char char::
-    char <- @char (!"\\" . / "\\"~ ['\"\[\]\\])
-          / @escape "\\"~ [bfnrt]
+    char <- @char (!"\\" .
+                 / "\\"~ (['\"\[\]\\] / "b":"\b" / "f":"\f"
+                        / "n":"\n" / "r":"\r" / "t":"\t"))
           / @octal "\\"~ ([0-2][0-7][0-7] / [0-7][0-7]?)
     Any <- DOT
 
@@ -67,13 +68,6 @@ source = r"""
     EndOfFile <- !.
 """
 
-hooks = {
-    "escape": {
-        "b": "\b",
-        "f": "\f",
-        "r": "\r",
-        "n": "\n",
-        "t": "\t",
-    }.__getitem__,
+converters = {
     "octal": lambda v: chr(int(v, 8))
 }
