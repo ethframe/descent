@@ -106,7 +106,7 @@ class NamedType(Type):
         other = other.flat()
         if isinstance(other, InvalidType):
             return InvalidType()
-        return NodeType(self.name, {name: Field(False, False)}, [name])
+        return NodeType(self.name, OrderedDict([(name, Field(False, False))]))
 
     def splice(self, other):
         if isinstance(other, UnknownType):
@@ -116,7 +116,7 @@ class NamedType(Type):
         if isinstance(other, (StringType, TokenType)):
             return TokenType(self.name)
         if isinstance(other, NodeType):
-            return NodeType(self.name, other.fields, other.order)
+            return NodeType(self.name, other.fields)
         if isinstance(other, OrType):
             return merge_types(self.splice(t) for t in other)
         return InvalidType()
@@ -127,9 +127,7 @@ class NamedType(Type):
     def merge(self, other):
         if self == other:
             return self
-        if isinstance(other, (TokenType, NodeType)):
-            return other.merge(self)
-        return OrType(self, other)
+        return other.merge(self)
 
 
 class TokenType(Type):
@@ -164,12 +162,8 @@ class TokenType(Type):
         if self == other:
             return self
         if isinstance(other, NamedType):
-            if self.name == other.name:
-                return self
-        if isinstance(other, NodeType):
-            if self.name == other.name:
-                return InvalidType()
-        return OrType(self, other)
+            return self
+        return InvalidType()
 
 
 class Field(namedtuple("Field", "arr opt")):
@@ -185,17 +179,16 @@ class Field(namedtuple("Field", "arr opt")):
 
 
 class NodeType(Type):
-    def __init__(self, name, fields, order):
+    def __init__(self, name, fields):
         self.name = name
         self.fields = fields
-        self.order = order
 
     def __repr__(self):
         return '{}({})'.format(
             self.name,
             ', '.join(
-                '{}={!r}'.format(name, self.fields[name])
-                for name in self.order
+                '{}={!r}'.format(name, field)
+                for name, field in self.fields.items()
             )
         )
 
@@ -214,28 +207,23 @@ class NodeType(Type):
         other = other.flat()
         if isinstance(other, InvalidType):
             return other
-        fields = dict(self.fields)
-        order = list(self.order)
+        fields = OrderedDict(self.fields)
         if name in fields:
             fields[name] = fields[name].append(Field(False, False))
         else:
             fields[name] = Field(False, False)
-            order.append(name)
-        return NodeType(self.name, fields, order)
+        return NodeType(self.name, fields)
 
     def splice(self, other):
         if isinstance(other, (EmptyType, NamedType)):
             return self
         if isinstance(other, NodeType):
-            fields = dict(self.fields)
-            order = list(self.order)
+            fields = OrderedDict(self.fields)
             for name, of in other.fields.items():
                 if name in fields:
-                    fields[name] = fields[name].append(of)
-                else:
-                    fields[name] = of
-                    order.append(name)
-            return NodeType(self.name, fields, name)
+                    of = fields[name].append(of)
+                fields[name] = of
+            return NodeType(self.name, fields)
         if isinstance(other, OrType):
             return merge_types(self.splice(t) for t in other)
         if isinstance(other, UnknownType):
@@ -249,27 +237,20 @@ class NodeType(Type):
         if self == other:
             return self
         if isinstance(other, NamedType):
-            if self.name == other.name:
-                fields = {}
-                for name, field in self.fields.items():
-                    fields[name] = Field(field.arr, True)
-                return NodeType(self.name, fields, self.order)
-        if isinstance(other, TokenType):
-            if self.name == other.name:
-                return InvalidType()
+            fields = OrderedDict()
+            for name, field in self.fields.items():
+                fields[name] = Field(field.arr, True)
+            return NodeType(self.name, fields)
         if isinstance(other, NodeType):
-            if self.name == other.name:
-                fields = {}
-                order = list(self.order)
-                for name, sf in self.fields.items():
-                    of = other.fields.get(name, Field(False, True))
-                    fields[name] = Field(sf.arr or of.arr, sf.opt or of.opt)
-                for name, of in other.fields.items():
-                    if name not in self.fields:
-                        fields[name] = Field(of.arr, True)
-                        order.append(name)
-                return NodeType(self.name, fields, order)
-        return None
+            fields = OrderedDict()
+            for name, sf in self.fields.items():
+                of = other.fields.get(name, Field(False, True))
+                fields[name] = Field(sf.arr or of.arr, sf.opt or of.opt)
+            for name, of in other.fields.items():
+                if name not in self.fields:
+                    fields[name] = Field(of.arr, True)
+            return NodeType(self.name, fields)
+        return InvalidType()
 
 
 class OrType(Type):
@@ -306,21 +287,15 @@ def merge_types(types):
             return tp
         elif isinstance(tp, UnknownType):
             continue
-        elif isinstance(tp, OrType):
-            types_list.extend(tp)
         else:
-            types_list.append(tp)
+            types_list.extend(tp)
     merged = OrderedDict()
     for tp in types_list:
-        if isinstance(tp, InvalidType):
-            return tp
-        elif isinstance(tp, UnknownType):
-            continue
-        elif isinstance(tp, (EmptyType, StringType)):
+        if isinstance(tp, (EmptyType, StringType)):
             merged[tp] = tp
-        elif tp.name in merged:
-            merged[tp.name] = merged[tp.name].merge(tp)
         else:
+            if tp.name in merged:
+                tp = merged[tp.name].merge(tp)
             merged[tp.name] = tp
     distinct_types = list(merged.values())
     if not distinct_types:

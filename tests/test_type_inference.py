@@ -1,3 +1,5 @@
+from collections import OrderedDict as od
+
 import py.test
 
 from descent.parser import parse_grammar
@@ -20,47 +22,45 @@ type_cases = [
     ("A <- (@a / @b)::", {NamedType("a"), NamedType("b")}),
     ("A <- @a @b:a", {
         NamedType("b"),
-        NodeType("a", {"a": Field(False, False)}, ["a"])
+        NodeType("a", od([("a", Field(False, False))]))
     }),
     ("A <- @a (@b:a / @b:b)", {
         NamedType("b"),
         NodeType(
             "a",
-            {"a": Field(False, True), "b": Field(False, True)},
-            ["a", "b"]
+            od([("a", Field(False, True)), ("b", Field(False, True))])
         )
     }),
     ("A <- @b @a^a", {
         NamedType("b"),
-        NodeType("a", {"a": Field(False, False)}, ["a"])
+        NodeType("a", od([("a", Field(False, False))]))
     }),
     ("A <- @a @b:a?", {
         NamedType("b"),
-        NodeType("a", {"a": Field(False, True)}, ["a"])
+        NodeType("a", od([("a", Field(False, True))]))
     }),
     ("A <- @a @b:a*", {
         NamedType("b"),
-        NodeType("a", {"a": Field(True, True)}, ["a"])
+        NodeType("a", od([("a", Field(True, True))]))
     }),
     ("A <- @a (@b:a / @b:b*)", {
         NamedType("b"),
         NodeType(
             "a",
-            {"a": Field(False, True), "b": Field(True, True)},
-            ["a", "b"]
+            od([("a", Field(False, True)), ("b", Field(True, True))])
         )
     }),
     ("A <- @a @b:a+", {
         NamedType("b"),
-        NodeType("a", {"a": Field(True, False)}, ["a"])
+        NodeType("a", od([("a", Field(True, False))]))
     }),
     ("A <- @a A:a / @b", {
         NamedType("b"),
-        NodeType("a", {"a": Field(False, False)}, ["a"])
+        NodeType("a", od([("a", Field(False, False))]))
     }),
     ("A <- @a @b:a A:: / @a @b:a", {
         NamedType("b"),
-        NodeType("a", {"a": Field(True, False)}, ["a"])
+        NodeType("a", od([("a", Field(True, False))]))
     }),
 
     ("A <- @a~", {NamedType("a")}),
@@ -81,8 +81,7 @@ type_cases = [
         NamedType("b"),
         NodeType(
             "a",
-            {"a": Field(False, False), "b": Field(False, True)},
-            ["b", "a"]
+            od([("b", Field(False, True)), ("a", Field(False, False))])
         )
     }),
 
@@ -90,8 +89,7 @@ type_cases = [
         NamedType("b"),
         NodeType(
             "a",
-            {"a": Field(False, False), "b": Field(False, False)},
-            ["a", "b"]
+            od([("a", Field(False, False)), ("b", Field(False, False))])
         )
     }),
 
@@ -100,6 +98,15 @@ type_cases = [
     ("A <- 'a' @a:a", None),
     ("A <- 'a' A:: / @a / @b", {NamedType("a"), NamedType("b")}),
     ("A <- 'a' ('a' @a:a)::", None),
+
+    ("A <- @a A:: / @a 'a'", {TokenType("a")}),
+    ("A <- @a A:: / @a (@b 'a'):a", {
+        TokenType("b"),
+        NodeType("a", od([("a", Field(False, False))]))
+    }),
+    ("A <- @a A:: / @a", {NamedType("a")}),
+    ("A <- @a A:: / (@a / @b)", {NamedType("a"), NamedType("b")}),
+    ("A <- @a A:: / @a 'a':a", None),
 ]
 
 
