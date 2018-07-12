@@ -8,9 +8,6 @@ from descent.fixpoint import CaseFix, fix
 
 
 class TypeInference(CaseFix):
-    def reference(self, val, ctype):
-        return self.fix.get(val, ctype)
-
     def sequence(self, val, ctype):
         for p in val:
             ctype = self(p, ctype)

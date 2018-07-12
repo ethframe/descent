@@ -7,9 +7,6 @@ state = namedtuple("State", "wf nul inv")
 
 
 class GrammarCheck(CaseFix):
-    def reference(self, val):
-        return self.fix.get(val)
-
     def string(self, val):
         return state(True, not val, False)
 
