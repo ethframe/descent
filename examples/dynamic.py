@@ -18,19 +18,14 @@ DYNAMIC_GRAMMAR = r"""
 
     Program <- _ Statements !.
     Statements <- @Statements Statement:statements*
+    Empty <- @Statements
     Statement <- Condition / Assignment
     Block <- Paren<"{", Statements, "}">
     Assignment <- @Assignment Variable:lvalue Tok<"="> Expression:rvalue
     Condition <- @Condition
         KW<"if"> Expression:predicate
         Block:true
-        cond_tail:false
-
-    cond_tail <- @Condition
-        KW<"else"> KW<"if"> Expression:predicate
-        Block:true
-        cond_tail:false /
-        (KW<"else"> Block / @Statements)
+        (KW<"else"> (Condition / Block) / Empty):false
 
     Expression <- P5
     P5 <- LExpr<P4, Op<"==":"eq" / "!=":"neq">>
@@ -277,7 +272,9 @@ def main():
             var = to_string(flag - 1) + "a"
         }
 
-        env = environment()
+        if flag != 0 {
+            env = environment()
+        }
 
         item = env["flag"]
     """)
