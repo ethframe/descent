@@ -78,6 +78,10 @@ class TypeInference(CaseFix):
     def optional(self, val, ctype):
         return merge_types((ctype, self(val, ctype)))
 
+    def fail(self, val, ctype):
+        self.reg.update(ctype)
+        return UnknownType()
+
 
 class Registry:
     def __init__(self):

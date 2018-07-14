@@ -193,6 +193,10 @@ def char_any(stream, pos, tree):
     return pos, None
 
 
+def fail(stream, pos, tree):
+    return pos, None
+
+
 class Compiler(CaseUnapply1):
     def char_any(self, val):
         return char_any
@@ -250,6 +254,9 @@ class Compiler(CaseUnapply1):
 
     def replace(self, val):
         return replace(self(val.expr), str(val.value))
+
+    def fail(self, val):
+        return fail
 
 
 def compile_parser(gram, classes, converters=None):
