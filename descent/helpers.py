@@ -6,7 +6,7 @@ from descent.macro import expand_macros
 from descent.typeinference import infer_types
 
 
-def parser_from_source(src, hooks=None):
+def parser_from_source(src, converters=None):
     grammar = expand_macros(parse_grammar(src))
     invalid = get_invalid(check_grammar(grammar))
     if invalid:
@@ -17,4 +17,4 @@ def parser_from_source(src, hooks=None):
     if types is None:
         raise ValueError("Got invalid type")
     ast = gen_ast_module(types)
-    return compile_parser(grammar, ast, hooks)
+    return compile_parser(grammar, ast, converters)

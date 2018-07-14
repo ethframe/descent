@@ -33,6 +33,9 @@ class char:
             return other.consume(converter(self.val))
         return other.consume(self.val)
 
+    def to_dict(self):
+        return {'__type__': 'char', 'value': self.val}
+
 
 class octal:
     def __init__(self, val=''):
@@ -68,6 +71,9 @@ class octal:
         if converter:
             return other.consume(converter(self.val))
         return other.consume(self.val)
+
+    def to_dict(self):
+        return {'__type__': 'octal', 'value': self.val}
 
 
 class string:
@@ -105,6 +111,9 @@ class string:
             return other.consume(converter(self.val))
         return other.consume(self.val)
 
+    def to_dict(self):
+        return {'__type__': 'string', 'value': self.val}
+
 
 class reference:
     def __init__(self, val=''):
@@ -140,6 +149,9 @@ class reference:
         if converter:
             return other.consume(converter(self.val))
         return other.consume(self.val)
+
+    def to_dict(self):
+        return {'__type__': 'reference', 'value': self.val}
 
 
 class rule:
@@ -182,11 +194,18 @@ class rule:
         self.expr = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_name(self.name)
         if self.expr is not None:
             other.append_expr(self.expr)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'rule',
+            'name': self.name.to_dict(),
+            'expr': None if self.expr is None else self.expr.to_dict(),
+        }
 
 
 class fail:
@@ -211,6 +230,9 @@ class fail:
     def splice_to(self, other):
         return other
 
+    def to_dict(self):
+        return {'__type__': 'fail'}
+
 
 class char_any:
     def __repr__(self):
@@ -233,6 +255,9 @@ class char_any:
 
     def splice_to(self, other):
         return other
+
+    def to_dict(self):
+        return {'__type__': 'char_any'}
 
 
 class char_range:
@@ -275,10 +300,17 @@ class char_range:
         self.end = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_start(self.start)
         other.append_end(self.end)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'char_range',
+            'start': self.start.to_dict(),
+            'end': self.end.to_dict(),
+        }
 
 
 class append:
@@ -321,10 +353,17 @@ class append:
         self.name = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         other.append_name(self.name)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'append',
+            'expr': self.expr.to_dict(),
+            'name': self.name.to_dict(),
+        }
 
 
 class top:
@@ -367,10 +406,17 @@ class top:
         self.name = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         other.append_name(self.name)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'top',
+            'expr': self.expr.to_dict(),
+            'name': self.name.to_dict(),
+        }
 
 
 class splice:
@@ -405,9 +451,15 @@ class splice:
         self.expr = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'splice',
+            'expr': self.expr.to_dict(),
+        }
 
 
 class top_splice:
@@ -442,9 +494,15 @@ class top_splice:
         self.expr = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'top_splice',
+            'expr': self.expr.to_dict(),
+        }
 
 
 class ignore:
@@ -479,9 +537,15 @@ class ignore:
         self.expr = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'ignore',
+            'expr': self.expr.to_dict(),
+        }
 
 
 class node:
@@ -519,6 +583,9 @@ class node:
             return other.consume(converter(self.val))
         return other.consume(self.val)
 
+    def to_dict(self):
+        return {'__type__': 'node', 'value': self.val}
+
 
 class optional:
     __slots__ = ('expr',)
@@ -552,9 +619,15 @@ class optional:
         self.expr = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'optional',
+            'expr': self.expr.to_dict(),
+        }
 
 
 class repeat:
@@ -589,9 +662,15 @@ class repeat:
         self.expr = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'repeat',
+            'expr': self.expr.to_dict(),
+        }
 
 
 class repeat1:
@@ -626,9 +705,15 @@ class repeat1:
         self.expr = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'repeat1',
+            'expr': self.expr.to_dict(),
+        }
 
 
 class replace:
@@ -671,10 +756,17 @@ class replace:
         self.value = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         other.append_value(self.value)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'replace',
+            'expr': self.expr.to_dict(),
+            'value': self.value.to_dict(),
+        }
 
 
 class follow:
@@ -709,9 +801,15 @@ class follow:
         self.expr = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'follow',
+            'expr': self.expr.to_dict(),
+        }
 
 
 class not_follow:
@@ -746,9 +844,15 @@ class not_follow:
         self.expr = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_expr(self.expr)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'not_follow',
+            'expr': self.expr.to_dict(),
+        }
 
 
 class choice:
@@ -787,9 +891,15 @@ class choice:
         self.items.extend(val)
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.extend_items(self.items)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'choice',
+            'items': [i.to_dict() for i in self.items],
+        }
 
 
 class sequence:
@@ -828,9 +938,15 @@ class sequence:
         self.items.extend(val)
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.extend_items(self.items)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'sequence',
+            'items': [i.to_dict() for i in self.items],
+        }
 
 
 class expand:
@@ -877,10 +993,17 @@ class expand:
         self.args.extend(val)
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_name(self.name)
         other.extend_args(self.args)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'expand',
+            'name': self.name.to_dict(),
+            'args': [i.to_dict() for i in self.args],
+        }
 
 
 class macro:
@@ -935,11 +1058,19 @@ class macro:
         self.expr = val
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.append_name(self.name)
         other.extend_args(self.args)
         other.append_expr(self.expr)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'macro',
+            'name': self.name.to_dict(),
+            'args': [i.to_dict() for i in self.args],
+            'expr': self.expr.to_dict(),
+        }
 
 
 class grammar:
@@ -978,9 +1109,15 @@ class grammar:
         self.rules.extend(val)
         return self
 
-    def splice_to(self, other, hooks):
+    def splice_to(self, other, converters):
         other.extend_rules(self.rules)
         return other
+
+    def to_dict(self):
+        return {
+            '__type__': 'grammar',
+            'rules': [i.to_dict() for i in self.rules],
+        }
 
 
 types_map = {
