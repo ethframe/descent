@@ -466,6 +466,7 @@ grammar = OrderedDict(
                                                             char("["),
                                                             char("]"),
                                                             char("\\"),
+                                                            char("-"),
                                                         ]
                                                     ),
                                                     replace(

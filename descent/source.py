@@ -28,7 +28,7 @@ source = r"""
     Range <- @char_range Char:start "-"~ Char:end / Char
     Char <- @char char::
     char <- @char (!"\\" .
-                 / "\\"~ (['\"\[\]\\] / "b":"\b" / "f":"\f"
+                 / "\\"~ (['\"\[\]\\\-] / "b":"\b" / "f":"\f"
                         / "n":"\n" / "r":"\r" / "t":"\t"))
           / @octal "\\"~ ([0-2][0-7][0-7] / [0-7][0-7]?)
     Any <- DOT
