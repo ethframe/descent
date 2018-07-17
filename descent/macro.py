@@ -18,7 +18,9 @@ class Macroexpander(Case):
         return None
 
     def rule(self, val, env):
-        val.expr = self(val.expr, env)
+        new_env = dict(env)
+        new_env["this"] = val.name
+        val.expr = self(val.expr, new_env)
         return val
 
     def expand(self, val, env):

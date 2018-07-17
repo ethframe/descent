@@ -40,3 +40,4 @@ Recursive descent parsing toolkit.
 
 * `macro<arg1, arg2> <- arg1 ...` - macro definition
 * `macro<A, "b" / "c">` - macro usage
+* `macro<...> <- ... this ...` - reference to the rule in which the macro is used
