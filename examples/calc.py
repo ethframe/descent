@@ -9,6 +9,7 @@ CALC_GRAMMAR = r"""
     rexpr<E, O> <- E etail<O, this>?
     unary<E, O> <- O this:expr / E
     paren<O, E, C> <- t<O> E t<C>
+    oneopt<A, B> <- A B? / B
 
     calc <- _ expr !.
     expr <- p0
@@ -19,11 +20,8 @@ CALC_GRAMMAR = r"""
     p4 <- num / paren<"(", expr, ")">
 
     num <- @Int
-           "-"?
-           ("0" / [1-9][0-9]*)
-           (@Float^^ "."[0-9]+)?
-           (@Float^^ [eE][-+]?[0-9]+)?
-           _
+           "-"? ("0" / [1-9][0-9]*)
+           (oneopt<"."[0-9]+, [eE][-+]?[0-9]+> @Float^^)? _
 
     _ <- ([ \t\r\n]*)~
 """

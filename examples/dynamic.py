@@ -5,6 +5,7 @@ from descent.helpers import parser_from_source
 
 
 DYNAMIC_GRAMMAR = r"""
+    Start<B> <- _ B !.
     Tok<S> <- S~ _
     Tok<S, T> <- Tok<S> T
     KW<S> <- S~ !ident _
@@ -12,11 +13,13 @@ DYNAMIC_GRAMMAR = r"""
     LExpr<E, O, R> <- E ((@BinOp O:op)^left R:right)*
     LExpr<E, O> <- LExpr<E, O, E>
     RExpr<E, O, S> <- E (O^left S:right)?
-    UExpr<E, O> <- @UnaryOp O:op E:expr / E
+    RExpr<E, O> <- RExpr<E, O, this>
+    UExpr<E, O> <- @UnaryOp O:op this:expr / E
     Paren<O, E, C> <- Tok<O> E Tok<C>
     List<I, D> <- (I (Tok<D> I)*)?
+    OneOpt<A, B> <- A B? / B
 
-    Program <- _ Statements !.
+    Program <- Start<Statements>
     Statements <- @Statements Statement:statements*
     Empty <- @Statements
     Statement <- Condition / Assignment
@@ -39,28 +42,28 @@ DYNAMIC_GRAMMAR = r"""
             Paren<"(", List<Expression:args, ","> ,")">
 
     Number <- @Integer "-"? ("0" / [1-9][0-9]*)
-              ("."[0-9]+ @Float^^)?
-              ([eE][-+]?[0-9]+ @Float^^)? _
+              (OneOpt<"."[0-9]+, [eE][-+]?[0-9]+> @Float^^ @Float^^)? _
 
-    Variable <- @Variable identifier _
-    String <- @String '"'~ char* '"'~ _
+    Variable <- @Variable !keywords identifier _
+    String <- '"'~ @String char* '"'~ _
     identifier <- ident_start ident*
     ident_start <- [a-zA-Z_]
     ident <- [a-zA-Z0-9_]
     char <- "\\"~ (["\\/] / "b":"\b" / "f":"\f" /
                    "t":"\t" / "r":"\r" / "n":"\n")
           / !["\\\b\f\t\r\n] .
+    keywords <- ("if" / "else") !ident
 
     _ <- ([ \t\r\n]*)~
 """
 
 
 TYPES_GRAMMAR = r"""
-    TopLevel<B> <- _ B !.
+    Start<B> <- _ B !.
     Tok<S> <- S~ _
     List<I, D> <- I (Tok<D> I)*
 
-    Types <- TopLevel<@Types Element:elements*>
+    Types <- Start<@Types Element:elements*>
     Element <- Function / Type
     Type <- @Type Name:name (Tok<"<:"> Name:base)?
     Function <- @Function List<Name:names, "|"> Tok<":"> List<FType:types, "|">

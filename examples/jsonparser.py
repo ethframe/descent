@@ -4,25 +4,24 @@ from descent.helpers import parser_from_source
 JSON_GRAMMAR = r"""
     t<S> <- S~ _
     t<S, T> <- t<S> T
-    items<I> <- (I:items (t<","> I:items)*)?
-    collection<T, I, O, C> <- t<O, T> items<I> t<C>
+    list<I> <- (I:items (t<","> I:items)*)?
+    collection<T, O, I, C> <- t<O, T> list<I> t<C>
+    oneopt<A, B> <- A B? / B
 
     json <- _ value !.
     value <- string / number / object / array / true / false / null
-    object <- collection<@Object, pair, "{", "}">
+    object <- collection<@Object, "{", pair, "}">
     pair <- @Pair string:key t<":"> value:value
-    array <- collection<@Array, value, "[", "]">
+    array <- collection<@Array, "[", value, "]">
     string <- '"'~ @String char::* '"'~ _
     char <- @char (!["\\\b\f\t\r\n] . / "\\"~ ["\\/])
-          / @escape "\\"~ ("b":"\b" / "f":"\f" / "t":"\t"
-                           / "r":"\r" / "n":"\n")
+          / @escape "\\"~ ("b":"\b" / "f":"\f" / "t":"\t" /
+                           "r":"\r" / "n":"\n")
           / @unicode "\\u"~ hex hex hex hex
     hex <- [0-9a-fA-F]
     number <- @Number
-              "-"?
-              ("0" / [1-9][0-9]*)
-              (@Float^^ "."[0-9]+)?
-              (@Float^^ [eE][-+]?[0-9]+)?
+              "-"? ("0" / [1-9][0-9]*)
+              (oneopt<"."[0-9]+, [eE][-+]?[0-9]+> @Float^^)? _
               _
     true <- t<"true", @True_>
     false <- t<"false", @False_>
